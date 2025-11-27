@@ -646,23 +646,20 @@ const handleSubmit = async () => {
             await API.post("/profile/upload-images", uploadFormData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
-            toast.success("Profile created with images! Redirecting to gallery...", { id: loadingToast });
+            toast.success("Profile submitted successfully! Awaiting admin approval.", { id: loadingToast });
           } catch (uploadError) {
             console.error("Image upload error:", uploadError);
-            toast.success("Profile created! Some images failed to upload. Redirecting to gallery...", { id: loadingToast });
+            toast.success("Profile submitted! Some images failed to upload. Awaiting admin approval.", { id: loadingToast });
           }
         } else {
-          toast.success("Profile submitted successfully! Redirecting to gallery...", { id: loadingToast });
+          toast.success("Profile submitted successfully! Awaiting admin approval.", { id: loadingToast });
         }
       }
 
       setProfileId(res.data.profile?._id);
       setApprovalStatus('pending');
       
-      // Navigate to gallery immediately after successful creation
-      setTimeout(() => {
-        navigate('/gallery');
-      }, 1500);
+      // DON'T navigate to gallery for new profiles - show pending approval screen instead
       return;
     }
 
@@ -762,12 +759,11 @@ const handleSubmit = async () => {
     });
 
     console.log("Profile updated:", response.data);
-    toast.success("Profile updated successfully! Redirecting to gallery...", { id: loadingToast });
-
+    
     // Update UI state
     if (response.data?.profile) {
       setExistingProfile(response.data.profile);
-      setApprovalStatus(response.data.profile.approvalStatus || "pending");
+      setApprovalStatus(response.data.profile.approvalStatus || "approved");
       
       // Reload images
       if (response.data.profile.profileImages) {
@@ -778,7 +774,8 @@ const handleSubmit = async () => {
     // Clear removal list
     setImagesToRemove([]);
     
-    // Navigate to gallery immediately after successful update
+    // 🎯 KEY CHANGE: Always navigate to gallery for edits (no approval needed)
+    toast.success("Profile updated successfully! Redirecting to gallery...", { id: loadingToast });
     setTimeout(() => {
       navigate('/gallery');
     }, 1500);

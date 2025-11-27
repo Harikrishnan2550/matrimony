@@ -21,17 +21,17 @@ export default function SimpleGallery() {
   const [loading, setLoading] = useState(true);
   const [sendingInterest, setSendingInterest] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [userInterests, setUserInterests] = useState(new Set()); // Using Set for better performance
+  const [userInterests, setUserInterests] = useState(new Set());
 
   // Fetch current user info
   useEffect(() => {
     fetchCurrentUser();
   }, []);
 
-  // Fetch profiles when user ID is available
+  // Fetch profiles and interests when user ID is available
   useEffect(() => {
     if (currentUserId) {
-      fetchProfiles();
+      fetchProfilesAndInterests();
     }
   }, [currentUserId]);
 
@@ -40,7 +40,11 @@ export default function SimpleGallery() {
     try {
       const response = await API.get("/auth/me");
       if (response.data && response.data._id) {
-        setCurrentUserId(response.data._id);
+        const userId = response.data._id;
+        setCurrentUserId(userId);
+        
+        // Clear any cached interests when user changes
+        clearStoredInterests();
       }
     } catch (error) {
       console.error("Error fetching current user:", error);
@@ -48,7 +52,11 @@ export default function SimpleGallery() {
       if (tokenData) {
         try {
           const userData = JSON.parse(tokenData);
-          setCurrentUserId(userData._id || userData.id);
+          const userId = userData._id || userData.id;
+          setCurrentUserId(userId);
+          
+          // Clear any cached interests when user changes
+          clearStoredInterests();
         } catch (e) {
           console.error("Error parsing user info from storage:", e);
         }
@@ -56,12 +64,43 @@ export default function SimpleGallery() {
     }
   };
 
-  // Fetch profiles from backend
-  const fetchProfiles = async () => {
+  // Fetch user's actual interests from backend
+  const fetchUserInterests = async () => {
+    try {
+      console.log("Fetching user interests from backend...");
+      const response = await API.get("/profile/my-interests");
+      console.log("Fetched user interests from backend:", response.data);
+      
+      if (response.data && Array.isArray(response.data)) {
+        const interestIds = response.data.map(interest => 
+          interest.profileId || interest._id || interest
+        );
+        const interestsSet = new Set(interestIds);
+        setUserInterests(interestsSet);
+        
+        // Also store in localStorage for quick access
+        localStorage.setItem('userInterests', JSON.stringify([...interestsSet]));
+        return interestsSet;
+      }
+      return new Set();
+    } catch (error) {
+      console.error("Error fetching user interests:", error);
+      // If endpoint doesn't exist, use localStorage as fallback
+      const storedInterests = getStoredInterests();
+      setUserInterests(storedInterests);
+      return storedInterests;
+    }
+  };
+
+  // Combined function to fetch profiles and interests
+  const fetchProfilesAndInterests = async () => {
     try {
       setLoading(true);
       
-      // Fetch public profiles
+      // Fetch interests first
+      const interests = await fetchUserInterests();
+      
+      // Then fetch profiles
       const response = await API.get("/profile/public");
       console.log("Public profiles fetched:", response.data);
       
@@ -79,7 +118,7 @@ export default function SimpleGallery() {
         bio: profile.bio || 'No bio available',
         height: profile.height || 'Not specified',
         userId: profile.user?._id,
-        interestSent: false // Default to false, will be updated from localStorage
+        interestSent: interests.has(profile._id) // Set based on actual interests
       }));
       
       // Filter out current user's profile
@@ -89,23 +128,24 @@ export default function SimpleGallery() {
         );
       }
 
-      // Load interests from localStorage and update profiles
-      const storedInterests = getStoredInterests();
-      setUserInterests(storedInterests);
-      
-      // Update profiles with interest status from localStorage
-      const updatedProfiles = transformedProfiles.map(profile => ({
-        ...profile,
-        interestSent: storedInterests.has(profile.id)
-      }));
-      
-      setProfiles(updatedProfiles);
+      setProfiles(transformedProfiles);
     } catch (error) {
       console.error("Error fetching profiles:", error);
       toast.error("Failed to load profiles. Please try again later.");
       setProfiles([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Clear stored interests (useful when user logs out/changes)
+  const clearStoredInterests = () => {
+    try {
+      localStorage.removeItem('userInterests');
+      setUserInterests(new Set());
+      console.log("Cleared stored interests");
+    } catch (error) {
+      console.error("Error clearing stored interests:", error);
     }
   };
 
@@ -122,11 +162,13 @@ export default function SimpleGallery() {
       const stored = localStorage.getItem('userInterests');
       if (stored) {
         const interestsArray = JSON.parse(stored);
+        console.log("Loaded interests from localStorage:", interestsArray);
         return new Set(interestsArray);
       }
     } catch (error) {
       console.error("Error reading interests from localStorage:", error);
     }
+    console.log("No interests found in localStorage");
     return new Set();
   };
 
@@ -136,8 +178,22 @@ export default function SimpleGallery() {
       currentInterests.add(profileId);
       localStorage.setItem('userInterests', JSON.stringify([...currentInterests]));
       setUserInterests(currentInterests);
+      console.log("Stored interest for profile:", profileId);
     } catch (error) {
       console.error("Error storing interest:", error);
+    }
+  };
+
+  // Remove interest from localStorage (for debugging)
+  const removeStoredInterest = (profileId) => {
+    try {
+      const currentInterests = getStoredInterests();
+      currentInterests.delete(profileId);
+      localStorage.setItem('userInterests', JSON.stringify([...currentInterests]));
+      setUserInterests(currentInterests);
+      console.log("Removed interest for profile:", profileId);
+    } catch (error) {
+      console.error("Error removing interest:", error);
     }
   };
 
@@ -147,6 +203,7 @@ export default function SimpleGallery() {
       setSendingInterest(true);
       
       console.log("Sending interest to profile:", profileId);
+      console.log("Current user interests:", userInterests);
       
       // Make sure profileId is valid
       if (!profileId || typeof profileId !== 'string') {
@@ -154,7 +211,7 @@ export default function SimpleGallery() {
         return;
       }
 
-      // Check if already interested
+      // Check if already interested (based on backend data)
       if (userInterests.has(profileId)) {
         toast.info("💝 You've already shown interest in this profile");
         return;
@@ -168,10 +225,15 @@ export default function SimpleGallery() {
       toast.success("Interest sent successfully!");
       console.log("Interest sent response:", response.data);
       
+      // Update local state immediately
+      const newInterests = new Set(userInterests);
+      newInterests.add(profileId);
+      setUserInterests(newInterests);
+      
       // Store in localStorage for persistence
       storeInterest(profileId);
       
-      // Update local state
+      // Update profiles list
       setProfiles(prevProfiles => 
         prevProfiles.map(profile => 
           profile.id === profileId 
@@ -187,6 +249,12 @@ export default function SimpleGallery() {
           interestSent: true
         }));
       }
+
+      // Refresh interests from backend to ensure sync
+      setTimeout(() => {
+        fetchUserInterests();
+      }, 1000);
+      
     } catch (error) {
       console.error("Error sending interest:", error);
       
@@ -196,13 +264,17 @@ export default function SimpleGallery() {
         
         console.log("Error details:", { errorMessage, status, data: error.response.data });
         
-        if (errorMessage === "Already marked interested") {
+        if (errorMessage === "Already marked interested" || status === 409) {
           toast.info("💝 You've already shown interest in this profile");
-          storeInterest(profileId); // Still store it locally
+          // Sync with backend - user actually has already shown interest
+          storeInterest(profileId);
+          fetchUserInterests(); // Refresh from backend
         } else if (status === 404) {
           toast.error("Profile not found or endpoint unavailable");
         } else if (status === 401) {
           toast.error("Please login to send interest");
+          // Clear cached interests if unauthorized
+          clearStoredInterests();
         } else if (status === 400) {
           toast.error(errorMessage || "Invalid request");
         } else {
@@ -220,9 +292,18 @@ export default function SimpleGallery() {
     }
   };
 
+  // Debug function to reset interests (for testing)
+  const debugResetInterests = () => {
+    clearStoredInterests();
+    toast.success("Interests reset for debugging");
+    fetchProfilesAndInterests();
+  };
+
   // Check if current user has already shown interest
   const hasShownInterest = (profile) => {
-    return profile.interestSent || userInterests.has(profile.id);
+    const hasInterest = profile.interestSent || userInterests.has(profile.id);
+    console.log(`Profile ${profile.id} interest status:`, hasInterest);
+    return hasInterest;
   };
 
   // Lightbox Navigation
@@ -282,6 +363,7 @@ export default function SimpleGallery() {
       `}</style>
       
       <Navbar />
+    
       
       {/* Hero Section */}
       <div className="relative bg-[#2D3E9F] py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -510,9 +592,6 @@ export default function SimpleGallery() {
                         Send Interest
                       </>
                     )}
-                  </button>
-                  <button className="px-4 py-3 border-2 border-gray-200 hover:border-blue-600 text-gray-600 hover:text-blue-600 rounded-xl font-bold transition transform hover:-translate-y-0.5 active:translate-y-0">
-                    Shortlist
                   </button>
                 </div>
               </div>

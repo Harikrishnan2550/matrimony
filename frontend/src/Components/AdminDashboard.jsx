@@ -75,15 +75,35 @@ export default function AdminDashboard() {
 
   // ----- ACTIONS -----
 
-  const handleApprove = async (id) => {
-    try {
-      await API.patch(`/profile/approve/${id}`);
-      toast.success("User approved successfully");
-      fetchDashboardData();
-    } catch {
+const handleApprove = async (id) => {
+  try {
+    console.log("🟡 Frontend: Attempting to approve profile ID:", id);
+    
+    // Check if ID is valid
+    if (!id || id === 'undefined' || id === 'null') {
+      toast.error("Invalid profile ID");
+      return;
+    }
+
+    const response = await API.patch(`/profile/approve/${id}`);
+    console.log("✅ Frontend: Approval successful:", response.data);
+    
+    toast.success("User approved successfully");
+    fetchDashboardData();
+  } catch (error) {
+    console.error("❌ Frontend: Approval failed:", error);
+    console.error("❌ Error response:", error.response?.data);
+    console.error("❌ Error status:", error.response?.status);
+    
+    if (error.response?.status === 500) {
+      toast.error(`Server error: ${error.response?.data?.message || 'Check backend logs'}`);
+    } else if (error.response?.status === 404) {
+      toast.error("Profile not found");
+    } else {
       toast.error("Approval failed");
     }
-  };
+  }
+};
 
   const handleReject = async (id) => {
     if (!window.confirm("Are you sure you want to reject this profile?")) return;

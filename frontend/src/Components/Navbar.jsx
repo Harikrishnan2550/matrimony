@@ -77,7 +77,7 @@ function Navbar() {
         <div className="relative">
           <div className="absolute inset-0 bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl shadow-black/20 border border-white/50"></div>
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-sm -z-10"></div>
-          <div className="relative flex justify-around items-center px-2 py-4">
+          <div className="relative flex justify-around items-center px-3 py-5">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = isActivePath(item.href);
@@ -85,7 +85,7 @@ function Navbar() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`relative flex flex-col items-center justify-center w-20 h-16 transition-all duration-500 group ${
+                  className={`relative flex flex-col items-center justify-center w-20 h-20 transition-all duration-500 group ${
                     isActive ? "transform -translate-y-3" : ""
                   }`}
                 >
