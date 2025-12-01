@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
-import API from "../api/axios";
+// ✅ 1. Use the central API instance (auto-handles token & domain)
+import API from "../api/axios"; 
 import { useEffect, useState } from "react";
 
 export default function ProtectedRoute({ children }) {
@@ -8,16 +9,21 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        const res = await API.get("https://login.akhilendianadar.in/api/profile/me");
+        // ✅ 2. Use relative path (API.baseURL handles the domain)
+        const res = await API.get("/profile/me");
+        
+        // Only allow access if explicitly approved
         if (res.data?.approvalStatus === "approved") {
           setAllowed(true);
         } else {
           setAllowed(false);
         }
-      } catch {
+      } catch (error) {
+        console.error("Protected Route Error:", error);
         setAllowed(false);
       }
     };
+    
     checkAccess();
   }, []);
 
@@ -29,6 +35,6 @@ export default function ProtectedRoute({ children }) {
       </div>
     );
 
-  // ❌ Not approved → redirect to profile page
+  // ❌ Not approved → redirect to profile page (where they see "Pending" screen)
   return allowed ? children : <Navigate to="/profile" replace />;
 }

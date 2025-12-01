@@ -10,14 +10,10 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import axios from 'axios';
+import API from '../api/axios';
 import { toast, Toaster } from 'sonner';
 import Navbar from './Navbar';
 
-// API Configuration
-const API = axios.create({
-  baseURL: "https://login.akhilendianadar.in/api",
-});
 
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
@@ -53,17 +49,25 @@ export default function Matches() {
       const transformedMatches = response.data.map((item, index) => {
         const profile = item.profileId || item;
         
+        // Helper logic for image path
         let profileImage = '';
         if (profile.profileImages && profile.profileImages.length > 0) {
           const imagePath = profile.profileImages[0];
           if (imagePath.startsWith('http')) {
             profileImage = imagePath;
           } else {
-            const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-            profileImage = `${SERVER_URL}/${cleanPath}`;
+            // Clean up path for Nginx
+            let cleanPath = imagePath.replace(/\\/g, "/");
+            if (cleanPath.startsWith("uploads/")) {
+              cleanPath = cleanPath.replace("uploads/", "");
+            } else if (cleanPath.startsWith("/")) {
+              cleanPath = cleanPath.substring(1);
+            }
+            profileImage = `/uploads/${cleanPath}`;
           }
         } else {
           profileImage = getDefaultImage(profile.gender);
+        
         }
         
         return {

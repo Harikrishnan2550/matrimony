@@ -222,12 +222,20 @@ export default function Form() {
     }
   };
 
-  const getFullImageUrl = (imagePath) => {
+const getFullImageUrl = (imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith("http")) return imagePath;
-    const cleanPath = imagePath.startsWith("/")
-      ? imagePath.substring(1)
-      : imagePath;
+    
+    // Fix: Remove 'uploads/' or backslashes if they are already in the DB path
+    // so we don't get /uploads/uploads/image.jpg
+    let cleanPath = imagePath.replace(/\\/g, "/"); // Fix Windows paths
+    if (cleanPath.startsWith("uploads/")) {
+      cleanPath = cleanPath.replace("uploads/", "");
+    } else if (cleanPath.startsWith("/")) {
+      cleanPath = cleanPath.substring(1);
+    }
+    
+    // Nginx is configured to serve files at /uploads/filename.jpg
     return `/uploads/${cleanPath}`;
   };
 

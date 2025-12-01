@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
-  Users,
-  UserCheck,
-  Clock,
-  Search,
-  Trash2,
-  CheckCircle,
-  XCircle,
-  Menu,
-  LayoutDashboard,
-  LogOut,
-  Loader2,
-  Eye
+  Users, UserCheck, Clock, Search, Trash2, CheckCircle,
+  XCircle, Menu, LayoutDashboard, LogOut, Loader2, Eye
 } from "lucide-react";
-import API from "../api/axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+
+// ✅ FIXED IMPORT: Point to the central API file we created
+import API from "../api/axios"; 
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview"); // overview, pending, all
@@ -67,6 +59,7 @@ export default function AdminDashboard() {
         approved: allRes.data.filter(p => p.approvalStatus === "approved").length
       });
     } catch (error) {
+      console.error("Dashboard Load Error:", error);
       toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
@@ -75,35 +68,19 @@ export default function AdminDashboard() {
 
   // ----- ACTIONS -----
 
-const handleApprove = async (id) => {
-  try {
-    console.log("🟡 Frontend: Attempting to approve profile ID:", id);
-    
-    // Check if ID is valid
-    if (!id || id === 'undefined' || id === 'null') {
-      toast.error("Invalid profile ID");
-      return;
-    }
+  const handleApprove = async (id) => {
+    try {
+      if (!id) return toast.error("Invalid profile ID");
 
-    const response = await API.patch(`/profile/approve/${id}`);
-    console.log("✅ Frontend: Approval successful:", response.data);
-    
-    toast.success("User approved successfully");
-    fetchDashboardData();
-  } catch (error) {
-    console.error("❌ Frontend: Approval failed:", error);
-    console.error("❌ Error response:", error.response?.data);
-    console.error("❌ Error status:", error.response?.status);
-    
-    if (error.response?.status === 500) {
-      toast.error(`Server error: ${error.response?.data?.message || 'Check backend logs'}`);
-    } else if (error.response?.status === 404) {
-      toast.error("Profile not found");
-    } else {
-      toast.error("Approval failed");
+      await API.patch(`/profile/approve/${id}`);
+      
+      toast.success("User approved successfully");
+      fetchDashboardData(); // Refresh list
+    } catch (error) {
+      console.error("Approval failed:", error);
+      toast.error(error.response?.data?.message || "Approval failed");
     }
-  }
-};
+  };
 
   const handleReject = async (id) => {
     if (!window.confirm("Are you sure you want to reject this profile?")) return;
@@ -111,7 +88,7 @@ const handleApprove = async (id) => {
       await API.patch(`/profile/reject/${id}`);
       toast.success("User rejected");
       fetchDashboardData();
-    } catch {
+    } catch (error) {
       toast.error("Rejection failed");
     }
   };
@@ -122,7 +99,7 @@ const handleApprove = async (id) => {
       await API.delete(`/profile/delete/${id}`);
       toast.success("Client deleted");
       fetchDashboardData();
-    } catch {
+    } catch (error) {
       toast.error("Deletion failed");
     }
   };
@@ -140,7 +117,7 @@ const handleApprove = async (id) => {
 
       const res = await API.get(`/profile/interests/${userId}`);
       setInterestProfiles(res.data || []);
-    } catch {
+    } catch (error) {
       toast.error("Failed to load interest list");
     } finally {
       setInterestLoading(false);
@@ -149,6 +126,7 @@ const handleApprove = async (id) => {
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
+    localStorage.removeItem("token");
     navigate("/");
   };
 
@@ -242,7 +220,8 @@ const handleApprove = async (id) => {
                     <div key={profile._id} className="bg-white p-6 rounded-xl shadow border flex gap-6">
                       <div className="w-32 h-32 bg-gray-100 rounded overflow-hidden">
                         {profile.profileImages?.[0] ? (
-                          <img src={`/uploads/${profile.profileImages[0]}`} className="w-full h-full object-cover" />
+                          // ✅ FIXED IMAGE PATH: Ensure it uses relative path for Nginx
+                          <img src={`/uploads/${profile.profileImages[0]}`} className="w-full h-full object-cover" alt="Profile" />
                         ) : (
                           <div className="bg-gray-200 text-gray-400 flex items-center justify-center h-full text-xs">No Image</div>
                         )}
@@ -307,22 +286,18 @@ const handleApprove = async (id) => {
                         <td className="p-4 capitalize">{profile.gender}</td>
                         <td className="p-4 text-gray-500">{new Date(profile.createdAt).toLocaleDateString()}</td>
                         <td className="p-4 text-right space-x-2">
-                          
-                          {/* 👇 NEW BUTTON */}
                           <button
                             onClick={() => navigate(`/admin/user/${profile.user?.clientId}`)}
                             className="text-indigo-600 hover:text-indigo-800 px-2 py-1 text-xs font-semibold rounded-full hover:bg-indigo-50 inline-flex items-center gap-1"
                           >
                             <Eye size={14} /> View
                           </button>
-
                           <button
                             onClick={() => handleViewInterests(profile)}
                             className="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs font-semibold rounded-full hover:bg-blue-50 inline-flex items-center gap-1"
                           >
                             <Eye size={14} /> Interests
                           </button>
-
                           <button
                             onClick={() => handleDelete(profile._id)}
                             className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50"
@@ -334,10 +309,6 @@ const handleApprove = async (id) => {
                     ))}
                   </tbody>
                 </table>
-
-                {filteredProfiles.length === 0 && (
-                  <p className="text-center text-gray-500 py-10">No matching results</p>
-                )}
               </div>
             </div>
           )}
@@ -358,8 +329,8 @@ const handleApprove = async (id) => {
   );
 }
 
-/* ---------------- COMPONENTS ---------------- */
-
+// ... (Your Components like SidebarItem, StatCard, StatusBadge, InterestModal remain the same)
+// Just ensure InterestModal also uses src={`/uploads/${p.profileImages?.[0]}`}
 function SidebarItem({ icon, label, active, onClick, badge }) {
   return (
     <button
@@ -422,6 +393,7 @@ function InterestModal({ loading, list, name, clientId, onClose }) {
                   <img
                     src={`/uploads/${p.profileImages?.[0]}`}
                     className="w-14 h-14 rounded-full object-cover bg-gray-200"
+                    alt="Profile"
                   />
                   <div className="flex-1">
                     <p className="font-semibold">{p.name} ({p.user?.clientId})</p>

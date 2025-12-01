@@ -1,35 +1,14 @@
 import React, { useState } from "react";
 import {
-  Shield,
-  Users,
-  Award,
-  Lock,
-  Mail,
-  Phone,
-  User,
-  Eye,
-  EyeOff,
-  Menu,
-  X,
-  Loader2,
+  Shield, Users, Award, Lock, Mail, Phone, User,
+  Eye, EyeOff, Menu, X, Loader2
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import assets from "../assets/assets";
 
-// --- Internal API Configuration (Inlined to fix resolution error) ---
-const API = axios.create({
-  baseURL: "/api",
-});
-
-// Attach JWT token automatically
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-// -------------------------------------------------------------------
+// ✅ IMPORT THE CENTRAL API INSTANCE
+import API from "../api"; 
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -48,10 +27,7 @@ export default function AuthPage() {
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async () => {
@@ -72,36 +48,28 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      // Determine Endpoint
       const endpoint = isLogin ? "/auth/login" : "/auth/signup";
 
-      // 2. API Call
+      // ✅ 2. Use the imported API (Clean and Consistent)
       const { data } = await API.post(endpoint, formData);
 
       // 3. Success Handling
       localStorage.setItem("token", data.token);
       localStorage.setItem("userInfo", JSON.stringify(data.user));
 
-      toast.success(
-        data.message ||
-          (isLogin ? "Login successful!" : "Account created successfully!")
-      );
+      toast.success(data.message || (isLogin ? "Login successful!" : "Account created successfully!"));
 
-      console.log("User Data:", data.user);
-
-      // 4. Redirect Logic - Check if user is admin
+      // 4. Redirect Logic
       setTimeout(() => {
         if (data.user.role === "admin") {
-          navigate("/admin/dashboard"); // Redirect admin to admin dashboard
+          navigate("/admin/dashboard");
         } else {
-          navigate("/profile"); // Redirect regular users to profile
+          navigate("/profile");
         }
       }, 500);
+
     } catch (error) {
-      // 5. Error Handling
-      const errorMsg =
-        error.response?.data?.message ||
-        "Something went wrong. Please try again.";
+      const errorMsg = error.response?.data?.message || "Something went wrong. Please try again.";
       toast.error(errorMsg);
       console.error("Auth Error:", error);
     } finally {
@@ -109,11 +77,14 @@ export default function AuthPage() {
     }
   };
 
+  // ... (The rest of your JSX/UI code remains exactly the same)
+  // Just make sure the JSX below is unchanged from your original file.
+  
   return (
     <div className="min-h-screen bg-white flex flex-col lg:flex-row">
       <Toaster position="top-center" richColors />
-
-      {/* Mobile Header with Menu Toggle */}
+      {/* ... paste your original JSX here ... */}
+       {/* Mobile Header with Menu Toggle */}
       <div className="lg:hidden bg-[#2D3E9F] p-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center">
           <img src={assets.logo} alt="ANA Logo" className="h-10 object-contain" />

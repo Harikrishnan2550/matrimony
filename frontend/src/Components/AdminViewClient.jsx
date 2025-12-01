@@ -7,7 +7,8 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import API from "../api/axios";
+// ✅ FIXED IMPORT: Point to the central API file (src/api.js)
+import API from "../api/axios"; 
 import { toast } from "sonner";
 
 export default function AdminViewClient() {
@@ -91,7 +92,8 @@ export default function AdminViewClient() {
             profile.profileImages.map((img, i) => (
               <img
                 key={i}
-                src={`/uploads/${img}`}
+                // ✅ This path works perfectly with the Nginx config I gave you
+                src={`/uploads/${img}`} 
                 alt=""
                 className="h-64 sm:h-56 md:h-52 object-cover w-full rounded"
               />

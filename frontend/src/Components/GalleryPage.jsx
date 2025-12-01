@@ -28,6 +28,24 @@ export default function SimpleGallery() {
     fetchCurrentUser();
   }, []);
 
+
+  // Helper to sanitize image paths for Nginx
+  const getFullImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith("http")) return imagePath;
+    
+    // Fix Windows paths and double slashes
+    let cleanPath = imagePath.replace(/\\/g, "/");
+    if (cleanPath.startsWith("uploads/")) {
+      cleanPath = cleanPath.replace("uploads/", "");
+    } else if (cleanPath.startsWith("/")) {
+      cleanPath = cleanPath.substring(1);
+    }
+    
+    return `/uploads/${cleanPath}`;
+  };
+
+
   // Fetch profiles and interests when user ID is available
   useEffect(() => {
     if (currentUserId) {
@@ -113,7 +131,7 @@ export default function SimpleGallery() {
         profession: profile.career || 'Not specified',
         location: profile.city || profile.country || 'Location not specified',
         image: profile.profileImages && profile.profileImages.length > 0 
-          ? `/uploads/${profile.profileImages[0]}` 
+          ? getFullImageUrl(profile.profileImages[0]) 
           : getDefaultImage(profile.gender),
         bio: profile.bio || 'No bio available',
         height: profile.height || 'Not specified',
