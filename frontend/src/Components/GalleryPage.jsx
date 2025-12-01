@@ -113,7 +113,7 @@ export default function SimpleGallery() {
         profession: profile.career || 'Not specified',
         location: profile.city || profile.country || 'Location not specified',
         image: profile.profileImages && profile.profileImages.length > 0 
-          ? `https://login.akhilendianadar.in/${profile.profileImages[0]}` 
+          ? `/uploads/${profile.profileImages[0]}` 
           : getDefaultImage(profile.gender),
         bio: profile.bio || 'No bio available',
         height: profile.height || 'Not specified',

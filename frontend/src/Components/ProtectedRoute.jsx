@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        const res = await API.get("/profile/me");
+        const res = await API.get("https://login.akhilendianadar.in/api/profile/me");
         if (res.data?.approvalStatus === "approved") {
           setAllowed(true);
         } else {

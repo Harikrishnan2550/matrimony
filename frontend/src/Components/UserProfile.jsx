@@ -53,7 +53,7 @@ const SimpleProfile = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await API.get("/profile/me");
+      const response = await API.get("https://login.akhilendianadar.in/api/profile/me");
       console.log("Profile API Response:", response.data);
       setProfile(response.data);
     } catch (error) {

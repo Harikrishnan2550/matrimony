@@ -20,7 +20,7 @@ import assets from "../assets/assets";
 
 // --- Internal API Configuration (Inlined to fix resolution error) ---
 const API = axios.create({
-  baseURL: "https://login.akhilendianadar.in/api",
+  baseURL: "/api",
 });
 
 // Attach JWT token automatically

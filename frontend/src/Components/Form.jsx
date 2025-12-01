@@ -228,7 +228,7 @@ export default function Form() {
     const cleanPath = imagePath.startsWith("/")
       ? imagePath.substring(1)
       : imagePath;
-    return `https://login.akhilendianadar.in/${cleanPath}`;
+    return `/uploads/${cleanPath}`;
   };
 
   // Mapping functions for form labels

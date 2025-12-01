@@ -30,7 +30,7 @@ export default function Matches() {
   const [loading, setLoading] = useState(true);
   const [selectedMatch, setSelectedMatch] = useState(null);
 
-  const SERVER_URL = "https://login.akhilendianadar.in";
+  const SERVER_URL = "/api";
 
   useEffect(() => {
     fetchMatches();
