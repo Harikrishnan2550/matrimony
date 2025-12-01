@@ -242,7 +242,7 @@ const handleApprove = async (id) => {
                     <div key={profile._id} className="bg-white p-6 rounded-xl shadow border flex gap-6">
                       <div className="w-32 h-32 bg-gray-100 rounded overflow-hidden">
                         {profile.profileImages?.[0] ? (
-                          <img src={`http://localhost:4000/${profile.profileImages[0]}`} className="w-full h-full object-cover" />
+                          <img src={`https://login.akhilendianadar.in/${profile.profileImages[0]}`} className="w-full h-full object-cover" />
                         ) : (
                           <div className="bg-gray-200 text-gray-400 flex items-center justify-center h-full text-xs">No Image</div>
                         )}
@@ -420,7 +420,7 @@ function InterestModal({ loading, list, name, clientId, onClose }) {
               {list.map((p) => (
                 <li key={p._id} className="p-4 flex items-center gap-4">
                   <img
-                    src={`http://localhost:4000/${p.profileImages?.[0]}`}
+                    src={`https://login.akhilendianadar.in/${p.profileImages?.[0]}`}
                     className="w-14 h-14 rounded-full object-cover bg-gray-200"
                   />
                   <div className="flex-1">

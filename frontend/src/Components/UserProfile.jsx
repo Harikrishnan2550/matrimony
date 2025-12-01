@@ -24,7 +24,10 @@ import Navbar from "./Navbar";
 
 // API Configuration
 const API = axios.create({
-  baseURL: "http://localhost:4000/api",
+  baseURL:
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000/api"
+    : "https://login.akhilendianadar.in/api",
 });
 
 API.interceptors.request.use((config) => {
@@ -38,7 +41,10 @@ const SimpleProfile = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const SERVER_URL = "http://localhost:4000";
+  const SERVER_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000"
+    : "https://login.akhilendianadar.in";
 
   useEffect(() => {
     fetchProfile();

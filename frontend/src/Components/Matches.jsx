@@ -16,7 +16,7 @@ import Navbar from './Navbar';
 
 // API Configuration
 const API = axios.create({
-  baseURL: "http://localhost:4000/api",
+  baseURL: "https://login.akhilendianadar.in/api",
 });
 
 API.interceptors.request.use((config) => {
@@ -30,7 +30,7 @@ export default function Matches() {
   const [loading, setLoading] = useState(true);
   const [selectedMatch, setSelectedMatch] = useState(null);
 
-  const SERVER_URL = "http://localhost:4000";
+  const SERVER_URL = "https://login.akhilendianadar.in";
 
   useEffect(() => {
     fetchMatches();

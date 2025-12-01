@@ -91,7 +91,7 @@ export default function AdminViewClient() {
             profile.profileImages.map((img, i) => (
               <img
                 key={i}
-                src={`http://localhost:4000/${img}`}
+                src={`https://login.akhilendianadar.in/${img}`}
                 alt=""
                 className="h-64 sm:h-56 md:h-52 object-cover w-full rounded"
               />
