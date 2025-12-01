@@ -6,6 +6,7 @@ import Matches from "./Components/Matches";
 import AdminDashboard from "./Components/AdminDashboard";
 import AdminViewClient from "./Components/AdminViewClient";
 import UserProfile from "./Components/UserProfile";
+import ProtectedRoute from "./Components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -13,9 +14,34 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login_Signup />} />
         <Route path="/profile" element={<Form />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/user-profile" element={<UserProfile />} />
-        <Route path="/matches" element={<Matches />} />
+
+        {/* 🔐 Protected Routes */}
+        <Route
+          path="/gallery"
+          element={
+            <ProtectedRoute>
+              <GalleryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/user-profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/matches"
+          element={
+            <ProtectedRoute>
+              <Matches />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🚨 Admin routes (optional to protect later) */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/user/:clientId" element={<AdminViewClient />} />
       </Routes>
