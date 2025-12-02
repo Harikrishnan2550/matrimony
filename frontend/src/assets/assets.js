@@ -1,4 +1,4 @@
-import logo from "../assets/logo.webp"
+import logo from "../assets/logo1.webp"
 
 
 const assets = {
