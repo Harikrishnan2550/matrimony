@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import assets from "../assets/assets";
 
 // ✅ IMPORT THE CENTRAL API INSTANCE
-import API from "../api"; 
+import API from "../api/axios"; 
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
