@@ -7,7 +7,6 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-// ✅ FIXED IMPORT: Point to the central API file (src/api.js)
 import API from "../api/axios"; 
 import { toast } from "sonner";
 
@@ -33,6 +32,25 @@ export default function AdminViewClient() {
     };
     fetchProfile();
   }, [clientId, navigate]);
+
+  // ✅ NEW HELPER FUNCTION TO FIX IMAGE PATHS
+  const getFullImageUrl = (imagePath) => {
+    if (!imagePath) return "/placeholder.jpg"; // Fallback
+    if (imagePath.startsWith("http")) return imagePath;
+
+    // 1. Convert backslashes (Windows) to forward slashes
+    let cleanPath = imagePath.replace(/\\/g, "/");
+
+    // 2. Remove 'uploads/' if it exists at the start
+    if (cleanPath.startsWith("uploads/")) {
+      cleanPath = cleanPath.replace("uploads/", "");
+    } else if (cleanPath.startsWith("/")) {
+      cleanPath = cleanPath.substring(1);
+    }
+
+    // 3. Return the clean path
+    return `/uploads/${cleanPath}`;
+  };
 
   const handleApprove = async () => {
     try {
@@ -92,10 +110,13 @@ export default function AdminViewClient() {
             profile.profileImages.map((img, i) => (
               <img
                 key={i}
-                // ✅ This path works perfectly with the Nginx config I gave you
-                src={`/uploads/${img}`} 
+                // ✅ UPDATED: Use the helper function here
+                src={getFullImageUrl(img)} 
                 alt=""
                 className="h-64 sm:h-56 md:h-52 object-cover w-full rounded"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/400?text=Image+Not+Found";
+                }}
               />
             ))
           ) : (
@@ -146,7 +167,6 @@ export default function AdminViewClient() {
               <Field label="Height" value={profile.height} />
               <Field label="Weight" value={profile.weight} />
 
-              {/* ✅ ADDED FATHER AND MOTHER HERE */}
               <Field label="Father's Name" value={profile.father} />
               <Field label="Mother's Name" value={profile.mother} />
               
