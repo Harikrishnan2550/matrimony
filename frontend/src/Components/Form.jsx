@@ -1048,7 +1048,7 @@ export default function Form() {
         closeButton
       />
 
-      <div className="bg-gradient-to-br from-purple-600 via-pink-600 to-rose-500 text-white py-8 px-4">
+      <div className="bg-[#2D3E9F] text-white py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">
             {headerTitle}
