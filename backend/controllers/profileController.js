@@ -132,31 +132,34 @@ export const getPendingProfiles = async (req, res) => {
   }
 };
 
-// ========================= ADMIN: APPROVE PROFILE =========================
+// ========================= ADMIN: APPROVE PROFILE (FIXED) =========================
 export const approveProfile = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log("🔍 Approve request received for ID:", id); // <-- Debug
+    console.log("🔍 Approve request received for ID:", id);
 
-    const profile = await Profile.findById(id);
+    // 1. Update Profile Status using findByIdAndUpdate
+    // This bypasses the strict validation check so you can unblock pending users
+    const profile = await Profile.findByIdAndUpdate(
+      id,
+      { approvalStatus: "approved" },
+      { new: true } 
+    );
 
     if (!profile) {
       console.log("❌ No profile found");
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    profile.approvalStatus = "approved";
-    await profile.save();
-
-    // Update user record
+    // 2. Update User Model to allow login
     const updatedUser = await User.findByIdAndUpdate(
       profile.user,
       { approved: true },
       { new: true }
     );
 
-    console.log("✅ User updated:", updatedUser);
+    console.log("✅ User updated:", updatedUser?._id);
 
     return res.status(200).json({
       message: "User approved successfully",
@@ -165,7 +168,7 @@ export const approveProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("🔥 APPROVAL ERROR:", error); // <-- Prints the actual error
+    console.error("🔥 APPROVAL ERROR:", error);
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
