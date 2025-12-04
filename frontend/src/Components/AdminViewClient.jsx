@@ -145,6 +145,11 @@ export default function AdminViewClient() {
               <Field label="Age" value={profile.age} />
               <Field label="Height" value={profile.height} />
               <Field label="Weight" value={profile.weight} />
+
+              {/* ✅ ADDED FATHER AND MOTHER HERE */}
+              <Field label="Father's Name" value={profile.father} />
+              <Field label="Mother's Name" value={profile.mother} />
+              
               <Field label="Mother Tongue" value={profile.motherTongue} />
               <Field label="Career" value={profile.career} />
               <Field label="Religion" value={profile.religion} />

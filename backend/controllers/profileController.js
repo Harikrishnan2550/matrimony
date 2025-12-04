@@ -21,6 +21,8 @@ export const upsertMyProfile = async (req, res) => {
       motherTongue,
       career,
       bio,
+      father, // <--- ADDED
+      mother, // <--- ADDED
       relationshipStatus,
       country,
       city,
@@ -47,6 +49,8 @@ export const upsertMyProfile = async (req, res) => {
       career,
       religion: "Hinduism",
       bio,
+      father, // <--- ADDED
+      mother, // <--- ADDED
       relationshipStatus,
       country,
       city,
@@ -486,6 +490,8 @@ export const editMyProfile = async (req, res) => {
       motherTongue,
       career,
       bio,
+      father, // <--- ADDED
+      mother, // <--- ADDED
       relationshipStatus,
       country,
       city,
@@ -577,6 +583,8 @@ export const editMyProfile = async (req, res) => {
       motherTongue,
       career,
       bio,
+      father, // <--- ADDED
+      mother, // <--- ADDED
       relationshipStatus,
       country,
       city,

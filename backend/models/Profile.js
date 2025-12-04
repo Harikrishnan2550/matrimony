@@ -92,6 +92,16 @@ const profileSchema = new mongoose.Schema(
       type: String,
     },
 
+    // ⭐ NEW FIELDS ADDED
+    father: {
+      type: String,
+      required: true,
+    },
+    mother: {
+      type: String,
+      required: true,
+    },
+
     profileImages: {
       type: [String], // array of image paths
       validate: (val) => val.length <= 4, // max 4 photos
@@ -171,7 +181,7 @@ const profileSchema = new mongoose.Schema(
         required: true,
       },
       heightRange: {
-        type: String, // "5.4 - 5.8" or "160cm - 175cm"
+        type: String,
       },
       weightRange: {
         type: String,
@@ -211,7 +221,7 @@ const profileSchema = new mongoose.Schema(
         immutable: true,
       },
       language: {
-        type: String, // single select
+        type: String,
         enum: ["Malayalam", "Tamil", "Hindi", "Other"],
       },
       education: {

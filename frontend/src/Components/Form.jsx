@@ -40,6 +40,8 @@ export default function Form() {
   const [formData, setFormData] = useState({
     // Personal Info (Step 1)
     name: "",
+    father: "",
+    mother: "",
     mobile: "",
     address: "",
     gender: "",
@@ -107,10 +109,10 @@ export default function Form() {
         setExistingProfile(response.data);
         setApprovalStatus(response.data.approvalStatus);
         setProfileId(response.data._id);
-        
+
         // Check if this is a new profile that's still pending
         const isPending = response.data.approvalStatus === "pending";
-        
+
         // Only set edit mode if profile is approved OR user explicitly wants to edit
         if (response.data.approvalStatus === "approved") {
           setIsEditMode(true);
@@ -138,6 +140,8 @@ export default function Form() {
     setFormData((prev) => ({
       ...prev,
       name: profile.name || "",
+      father: profile.father || "",
+      mother: profile.mother || "",
       mobile: profile.phone || "",
       address: profile.address || "",
       gender: mapGenderToLabel(profile.gender) || "",
@@ -222,10 +226,10 @@ export default function Form() {
     }
   };
 
-const getFullImageUrl = (imagePath) => {
+  const getFullImageUrl = (imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith("http")) return imagePath;
-    
+
     // Fix: Remove 'uploads/' or backslashes if they are already in the DB path
     // so we don't get /uploads/uploads/image.jpg
     let cleanPath = imagePath.replace(/\\/g, "/"); // Fix Windows paths
@@ -234,7 +238,7 @@ const getFullImageUrl = (imagePath) => {
     } else if (cleanPath.startsWith("/")) {
       cleanPath = cleanPath.substring(1);
     }
-    
+
     // Nginx is configured to serve files at /uploads/filename.jpg
     return `/uploads/${cleanPath}`;
   };
@@ -408,23 +412,23 @@ const getFullImageUrl = (imagePath) => {
   const removeImage = (type, index = null) => {
     if (type === "profile") {
       if (images.profile?.isExisting && existingImages[0]) {
-        setImagesToRemove(prev => [...prev, existingImages[0]]);
+        setImagesToRemove((prev) => [...prev, existingImages[0]]);
       }
-      setImages(prev => ({ ...prev, profile: null }));
+      setImages((prev) => ({ ...prev, profile: null }));
       return;
     }
 
     const imgObj = images.gallery[index];
     if (imgObj?.isExisting) {
-      const matched = existingImages.find(path =>
+      const matched = existingImages.find((path) =>
         imgObj.preview.includes(path.replace(/\\/g, "/").split("/").pop())
       );
       if (matched) {
-        setImagesToRemove(prev => [...prev, matched]);
+        setImagesToRemove((prev) => [...prev, matched]);
       }
     }
 
-    setImages(prev => {
+    setImages((prev) => {
       const newGallery = [...prev.gallery];
       newGallery[index] = null;
       return { ...prev, gallery: newGallery };
@@ -565,7 +569,14 @@ const getFullImageUrl = (imagePath) => {
 
   const handleSubmit = async () => {
     try {
-      if (!formData.address || !formData.gender || !formData.birthday || !formData.height) {
+      if (
+        !formData.address ||
+        !formData.gender ||
+        !formData.birthday ||
+        !formData.height ||
+        !formData.father ||
+        !formData.mother
+      ) {
         toast.error("Please fill all required fields");
         return;
       }
@@ -587,9 +598,11 @@ const getFullImageUrl = (imagePath) => {
       // CREATE PROFILE
       if (!isEditMode) {
         const loadingToast = toast.loading("Submitting your profile...");
-        
+
         const payload = {
           name: formData.name,
+          father: formData.father,
+          mother: formData.mother,
           phone: formData.mobile,
           address: formData.address,
           gender: mapGender(formData.gender),
@@ -600,7 +613,9 @@ const getFullImageUrl = (imagePath) => {
           motherTongue: formData.languages || "",
           career: formData.career || "",
           bio: formData.bio || "",
-          relationshipStatus: mapRelationshipStatus(formData.relationshipStatus),
+          relationshipStatus: mapRelationshipStatus(
+            formData.relationshipStatus
+          ),
           country: formData.country || "",
           city: formData.city || "",
           education: mapEducation(formData.education) || "",
@@ -611,9 +626,17 @@ const getFullImageUrl = (imagePath) => {
           alcohol: mapAlcohol(formData.alcohol),
           partnerPreferences: {
             interestedIn: mapGender(formData.interestedIn),
-            heightRange: formData.heightFrom && formData.heightTo ? `${formData.heightFrom} - ${formData.heightTo}` : "",
-            weightRange: formData.weightFrom && formData.weightTo ? `${formData.weightFrom} - ${formData.weightTo}` : "",
-            relationshipStatus: mapRelationshipStatus(formData.preferredRelationship),
+            heightRange:
+              formData.heightFrom && formData.heightTo
+                ? `${formData.heightFrom} - ${formData.heightTo}`
+                : "",
+            weightRange:
+              formData.weightFrom && formData.weightTo
+                ? `${formData.weightFrom} - ${formData.weightTo}`
+                : "",
+            relationshipStatus: mapRelationshipStatus(
+              formData.preferredRelationship
+            ),
             alcohol: mapAlcohol(formData.preferredAlcohol),
             smoking: mapSmoking(formData.preferredSmoking),
             children: mapChildren(formData.preferredChildren),
@@ -628,24 +651,25 @@ const getFullImageUrl = (imagePath) => {
 
         const res = await API.post("/profile", payload);
         console.log("Profile created:", res.data);
-        
+
         if (res.data.profile?._id) {
           const imageFiles = [];
-          
+
           if (images.profile && images.profile.file) {
             imageFiles.push(images.profile.file);
           }
-          
-          images.gallery.forEach(img => {
+
+          images.gallery.forEach((img) => {
             if (img && img.file) imageFiles.push(img.file);
           });
 
           if (imageFiles.length > 0) {
             toast.loading("Uploading images...", { id: loadingToast });
-            
+
             const uploadFormData = new FormData();
             imageFiles.forEach((file, index) => {
-              const filename = index === 0 ? `profile.jpg` : `gallery-${index}.jpg`;
+              const filename =
+                index === 0 ? `profile.jpg` : `gallery-${index}.jpg`;
               uploadFormData.append("images", file, filename);
             });
 
@@ -653,20 +677,29 @@ const getFullImageUrl = (imagePath) => {
               await API.post("/profile/upload-images", uploadFormData, {
                 headers: { "Content-Type": "multipart/form-data" },
               });
-              toast.success("Profile submitted successfully! Awaiting admin approval.", { id: loadingToast });
+              toast.success(
+                "Profile submitted successfully! Awaiting admin approval.",
+                { id: loadingToast }
+              );
             } catch (uploadError) {
               console.error("Image upload error:", uploadError);
-              toast.success("Profile submitted! Some images failed to upload. Awaiting admin approval.", { id: loadingToast });
+              toast.success(
+                "Profile submitted! Some images failed to upload. Awaiting admin approval.",
+                { id: loadingToast }
+              );
             }
           } else {
-            toast.success("Profile submitted successfully! Awaiting admin approval.", { id: loadingToast });
+            toast.success(
+              "Profile submitted successfully! Awaiting admin approval.",
+              { id: loadingToast }
+            );
           }
         }
 
         setProfileId(res.data.profile?._id);
-        setApprovalStatus('pending');
+        setApprovalStatus("pending");
         setIsNewProfilePending(true);
-        
+
         return;
       }
 
@@ -675,6 +708,8 @@ const getFullImageUrl = (imagePath) => {
 
       const payload = {
         name: formData.name,
+        father: formData.father,
+        mother: formData.mother,
         phone: formData.mobile,
         address: formData.address,
         gender: mapGender(formData.gender),
@@ -696,9 +731,17 @@ const getFullImageUrl = (imagePath) => {
         alcohol: mapAlcohol(formData.alcohol),
         partnerPreferences: {
           interestedIn: mapGender(formData.interestedIn),
-          heightRange: formData.heightFrom && formData.heightTo ? `${formData.heightFrom} - ${formData.heightTo}` : "",
-          weightRange: formData.weightFrom && formData.weightTo ? `${formData.weightFrom} - ${formData.weightTo}` : "",
-          relationshipStatus: mapRelationshipStatus(formData.preferredRelationship),
+          heightRange:
+            formData.heightFrom && formData.heightTo
+              ? `${formData.heightFrom} - ${formData.heightTo}`
+              : "",
+          weightRange:
+            formData.weightFrom && formData.weightTo
+              ? `${formData.weightFrom} - ${formData.weightTo}`
+              : "",
+          relationshipStatus: mapRelationshipStatus(
+            formData.preferredRelationship
+          ),
           alcohol: mapAlcohol(formData.preferredAlcohol),
           smoking: mapSmoking(formData.preferredSmoking),
           children: mapChildren(formData.preferredChildren),
@@ -713,44 +756,49 @@ const getFullImageUrl = (imagePath) => {
 
       console.log("Sending payload:", payload);
 
-      formDataToSend.append('data', JSON.stringify(payload));
+      formDataToSend.append("data", JSON.stringify(payload));
 
-      const remainingExistingImages = existingImages.filter(img => 
-        !imagesToRemove.includes(img)
+      const remainingExistingImages = existingImages.filter(
+        (img) => !imagesToRemove.includes(img)
       ).length;
-      
+
       const availableSlots = 4 - remainingExistingImages;
 
       const newFiles = [];
-      
+
       if (images.profile && images.profile.file && !images.profile.isExisting) {
         newFiles.push(images.profile.file);
       }
-      
-      images.gallery.forEach(img => {
+
+      images.gallery.forEach((img) => {
         if (img && img.file && !img.isExisting) {
           newFiles.push(img.file);
         }
       });
 
       if (newFiles.length > availableSlots) {
-        toast.error(`You can only upload ${availableSlots} new image(s). Please remove some existing images first.`);
+        toast.error(
+          `You can only upload ${availableSlots} new image(s). Please remove some existing images first.`
+        );
         setIsSubmitting(false);
         return;
       }
 
       if (imagesToRemove.length > 0) {
-        formDataToSend.append('removeImages', JSON.stringify(imagesToRemove));
+        formDataToSend.append("removeImages", JSON.stringify(imagesToRemove));
       }
 
       newFiles.forEach((file, index) => {
-        const filename = index === 0 && images.profile?.file ? 
-          `profile-${Date.now()}.jpg` : 
-          `gallery-${index}-${Date.now()}.jpg`;
+        const filename =
+          index === 0 && images.profile?.file
+            ? `profile-${Date.now()}.jpg`
+            : `gallery-${index}-${Date.now()}.jpg`;
         formDataToSend.append("images", file, filename);
       });
 
-      console.log(`Image info - Existing: ${existingImages.length}, Removing: ${imagesToRemove.length}, Remaining: ${remainingExistingImages}, New: ${newFiles.length}, Available: ${availableSlots}`);
+      console.log(
+        `Image info - Existing: ${existingImages.length}, Removing: ${imagesToRemove.length}, Remaining: ${remainingExistingImages}, New: ${newFiles.length}, Available: ${availableSlots}`
+      );
 
       const loadingToast = toast.loading("Updating profile...");
       const response = await API.put("/profile/edit-profile", formDataToSend, {
@@ -758,29 +806,30 @@ const getFullImageUrl = (imagePath) => {
       });
 
       console.log("Profile updated:", response.data);
-      
+
       if (response.data?.profile) {
         setExistingProfile(response.data.profile);
         setApprovalStatus(response.data.profile.approvalStatus || "approved");
-        
+
         if (response.data.profile.profileImages) {
           loadExistingImages(response.data.profile.profileImages);
         }
       }
 
       setImagesToRemove([]);
-      
-      toast.success("Profile updated successfully! Redirecting to gallery...", { id: loadingToast });
+
+      toast.success("Profile updated successfully! Redirecting to gallery...", {
+        id: loadingToast,
+      });
       setTimeout(() => {
-        navigate('/gallery');
+        navigate("/gallery");
       }, 1500);
-      
     } catch (err) {
       console.error("Submit error:", err);
       console.error("Error response:", err.response?.data);
-      
+
       let errorMessage = "Something went wrong while submitting your profile.";
-      
+
       if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.response?.status === 400) {
@@ -788,7 +837,7 @@ const getFullImageUrl = (imagePath) => {
       } else if (err.response?.status === 500) {
         errorMessage = "Server error. Please try again later.";
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -1194,6 +1243,26 @@ const getFullImageUrl = (imagePath) => {
                     placeholder="+91 00000 00000"
                     value={formData.mobile}
                     onChange={(e) => updateField("mobile", e.target.value)}
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 stagger-2">
+                  <InputField
+                    icon={<User size={20} />}
+                    label="Father's Name"
+                    required
+                    placeholder="Enter father's name"
+                    value={formData.father}
+                    onChange={(e) => updateField("father", e.target.value)}
+                  />
+
+                  <InputField
+                    icon={<User size={20} />}
+                    label="Mother's Name"
+                    required
+                    placeholder="Enter mother's name"
+                    value={formData.mother}
+                    onChange={(e) => updateField("mother", e.target.value)}
                   />
                 </div>
 

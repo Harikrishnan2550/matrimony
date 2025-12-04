@@ -77,7 +77,7 @@ const SimpleProfile = () => {
   };
 
   // Get profile image URL
- // Get profile image URL
+  // Get profile image URL
   const getProfileImage = () => {
     // 1. Default image if no profile
     if (!profile) return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300&h=300";
@@ -579,6 +579,30 @@ const SimpleProfile = () => {
                       </span>
                       <span className="font-semibold text-gray-900 text-sm sm:text-base">
                         {profile.income}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Father's Name */}
+                  {profile.father && (
+                    <div className="flex justify-between items-center p-3 sm:p-4 bg-gray-50 rounded-xl sm:rounded-2xl">
+                      <span className="text-gray-600 font-medium text-sm sm:text-base">
+                        Father's Name
+                      </span>
+                      <span className="font-semibold text-gray-900 text-sm sm:text-base capitalize">
+                        {profile.father}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Mother's Name */}
+                  {profile.mother && (
+                    <div className="flex justify-between items-center p-3 sm:p-4 bg-gray-50 rounded-xl sm:rounded-2xl">
+                      <span className="text-gray-600 font-medium text-sm sm:text-base">
+                        Mother's Name
+                      </span>
+                      <span className="font-semibold text-gray-900 text-sm sm:text-base capitalize">
+                        {profile.mother}
                       </span>
                     </div>
                   )}
