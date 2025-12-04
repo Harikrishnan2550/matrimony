@@ -777,7 +777,7 @@ const handleSubmit = async () => {
           smoking: mapSmoking(formData.preferredSmoking),
           children: mapChildren(formData.preferredChildren),
           country: formData.preferredCountry || "",
-          language: formData.preferredLanguages || "",
+          language: formData.preferredLanguages || undefined,
           education: mapEducation(formData.preferredEducation) || "",
           ageMin: formData.ageFrom ? Number(formData.ageFrom) : undefined,
           ageMax: formData.ageTo ? Number(formData.ageTo) : undefined,
