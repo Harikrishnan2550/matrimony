@@ -10,6 +10,26 @@ import {
 import API from "../api/axios"; 
 import { toast } from "sonner";
 
+// ✅ HELPER FUNCTION: FIX IMAGE PATHS
+// This ensures paths like "uploads\image.jpg" become "/uploads/image.jpg"
+const getFullImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith("http")) return imagePath;
+
+  // 1. Convert backslashes (Windows) to forward slashes
+  let cleanPath = imagePath.replace(/\\/g, "/");
+
+  // 2. Remove 'uploads/' if it exists at the start to avoid double folder paths
+  if (cleanPath.startsWith("uploads/")) {
+    cleanPath = cleanPath.replace("uploads/", "");
+  } else if (cleanPath.startsWith("/")) {
+    cleanPath = cleanPath.substring(1);
+  }
+
+  // 3. Return the clean relative path for Nginx to serve
+  return `/uploads/${cleanPath}`;
+};
+
 export default function AdminViewClient() {
   const { clientId } = useParams();
   const navigate = useNavigate();
@@ -32,25 +52,6 @@ export default function AdminViewClient() {
     };
     fetchProfile();
   }, [clientId, navigate]);
-
-  // ✅ NEW HELPER FUNCTION TO FIX IMAGE PATHS
-  const getFullImageUrl = (imagePath) => {
-    if (!imagePath) return "/placeholder.jpg"; // Fallback
-    if (imagePath.startsWith("http")) return imagePath;
-
-    // 1. Convert backslashes (Windows) to forward slashes
-    let cleanPath = imagePath.replace(/\\/g, "/");
-
-    // 2. Remove 'uploads/' if it exists at the start
-    if (cleanPath.startsWith("uploads/")) {
-      cleanPath = cleanPath.replace("uploads/", "");
-    } else if (cleanPath.startsWith("/")) {
-      cleanPath = cleanPath.substring(1);
-    }
-
-    // 3. Return the clean path
-    return `/uploads/${cleanPath}`;
-  };
 
   const handleApprove = async () => {
     try {
@@ -104,23 +105,27 @@ export default function AdminViewClient() {
       </button>
 
       <div className="max-w-6xl mx-auto bg-white shadow rounded-xl overflow-hidden">
+        
         {/* IMAGE GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 bg-black p-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 bg-black p-2 min-h-[200px]">
           {profile.profileImages?.length > 0 ? (
             profile.profileImages.map((img, i) => (
-              <img
-                key={i}
-                // ✅ UPDATED: Use the helper function here
-                src={getFullImageUrl(img)} 
-                alt=""
-                className="h-64 sm:h-56 md:h-52 object-cover w-full rounded"
-                onError={(e) => {
-                  e.target.src = "https://via.placeholder.com/400?text=Image+Not+Found";
-                }}
-              />
+              <div key={i} className="relative h-64 sm:h-56 md:h-52 w-full">
+                <img
+                  src={getFullImageUrl(img)} 
+                  alt={`Evidence ${i + 1}`}
+                  className="h-full w-full object-cover rounded bg-gray-800"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = "https://via.placeholder.com/400x300?text=Image+Load+Error";
+                  }}
+                />
+              </div>
             ))
           ) : (
-            <p className="text-white py-10 text-center w-full">No Images</p>
+            <div className="col-span-full flex items-center justify-center h-48 text-gray-400">
+              <p>No Images Uploaded</p>
+            </div>
           )}
         </div>
 
@@ -167,6 +172,7 @@ export default function AdminViewClient() {
               <Field label="Height" value={profile.height} />
               <Field label="Weight" value={profile.weight} />
 
+              {/* ✅ FATHER & MOTHER ADDED HERE */}
               <Field label="Father's Name" value={profile.father} />
               <Field label="Mother's Name" value={profile.mother} />
               
