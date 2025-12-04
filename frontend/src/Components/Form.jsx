@@ -567,35 +567,64 @@ export default function Form() {
     }
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     try {
-      if (
-        !formData.address ||
-        !formData.gender ||
-        !formData.birthday ||
-        !formData.height ||
-        !formData.father ||
-        !formData.mother
-      ) {
-        toast.error("Please fill all required fields");
-        return;
+      // ============================================================
+      // 1. STRICT VALIDATION FOR REQUIRED FIELDS
+      // ============================================================
+      // This list MUST match the fields marked with (*) in your form.
+      const strictChecks = [
+        { value: formData.name, label: "Full Name" },
+        { value: formData.mobile, label: "Mobile Number" },
+        { value: formData.father, label: "Father's Name" },
+        { value: formData.mother, label: "Mother's Name" },
+        { value: formData.address, label: "Address" },
+        { value: formData.gender, label: "Gender" },
+        { value: formData.birthday, label: "Birthday" },
+        { value: formData.height, label: "Height" },
+        { value: formData.languages, label: "Mother Tongue" },
+        { value: formData.career, label: "Career" },
+        { value: formData.relationshipStatus, label: "Relationship Status" },
+        { value: formData.country, label: "Country" },
+        { value: formData.education, label: "Education" },
+        // Partner Preferences
+        { value: formData.interestedIn, label: "Interested In (Partner)" },
+        { value: formData.preferredEducation, label: "Preferred Education (Partner)" },
+      ];
+
+      // Find the first missing field
+      const missingField = strictChecks.find(
+        (item) => !item.value || item.value.toString().trim() === ""
+      );
+
+      // If a required field is missing, STOP and show specific error
+      if (missingField) {
+        toast.error(`Please fill the required field: ${missingField.label}`);
+        return; 
       }
 
+      // ============================================================
+      // 2. IMAGE VALIDATION
+      // ============================================================
       if (!images.profile) {
         toast.error("Please upload a profile picture.");
         return;
       }
 
-      setIsSubmitting(true);
-
+      // ============================================================
+      // 3. AGE VALIDATION
+      // ============================================================
       const age = calculateAge(formData.birthday);
       if (!age) {
         toast.error("Invalid birthday. Please select a valid date.");
-        setIsSubmitting(false);
         return;
       }
 
-      // CREATE PROFILE
+      setIsSubmitting(true);
+
+      // ============================================================
+      // 4. CREATE PROFILE LOGIC (First Time)
+      // ============================================================
       if (!isEditMode) {
         const loadingToast = toast.loading("Submitting your profile...");
 
@@ -609,10 +638,10 @@ export default function Form() {
           birthday: formData.birthday,
           age: age,
           height: formData.height,
-          weight: formData.weight || "",
+          weight: formData.weight || "", // Optional
           motherTongue: formData.languages || "",
           career: formData.career || "",
-          bio: formData.bio || "",
+          bio: formData.bio || "", // Optional
           relationshipStatus: mapRelationshipStatus(
             formData.relationshipStatus
           ),
@@ -703,7 +732,9 @@ export default function Form() {
         return;
       }
 
-      // EDIT PROFILE
+      // ============================================================
+      // 5. EDIT PROFILE LOGIC (Updating)
+      // ============================================================
       const formDataToSend = new FormData();
 
       const payload = {

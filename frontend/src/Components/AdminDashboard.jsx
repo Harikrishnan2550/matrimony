@@ -5,12 +5,26 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
-// ✅ FIXED IMPORT: Point to the central API file we created
 import API from "../api/axios"; 
 
+// ✅ 1. HELPER FUNCTION TO FIX IMAGE PATHS (Defined outside component to be accessible everywhere)
+const getFullImageUrl = (imagePath) => {
+  if (!imagePath) return "https://via.placeholder.com/150?text=No+Image"; // Fallback
+  if (imagePath.startsWith("http")) return imagePath;
+
+  // Fix backslashes and remove extra 'uploads/' prefix
+  let cleanPath = imagePath.replace(/\\/g, "/");
+  if (cleanPath.startsWith("uploads/")) {
+    cleanPath = cleanPath.replace("uploads/", "");
+  } else if (cleanPath.startsWith("/")) {
+    cleanPath = cleanPath.substring(1);
+  }
+
+  return `/uploads/${cleanPath}`;
+};
+
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("overview"); // overview, pending, all
+  const [activeTab, setActiveTab] = useState("overview"); 
   const [pendingProfiles, setPendingProfiles] = useState([]);
   const [allProfiles, setAllProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +89,7 @@ export default function AdminDashboard() {
       await API.patch(`/profile/approve/${id}`);
       
       toast.success("User approved successfully");
-      fetchDashboardData(); // Refresh list
+      fetchDashboardData(); 
     } catch (error) {
       console.error("Approval failed:", error);
       toast.error(error.response?.data?.message || "Approval failed");
@@ -220,8 +234,12 @@ export default function AdminDashboard() {
                     <div key={profile._id} className="bg-white p-6 rounded-xl shadow border flex gap-6">
                       <div className="w-32 h-32 bg-gray-100 rounded overflow-hidden">
                         {profile.profileImages?.[0] ? (
-                          // ✅ FIXED IMAGE PATH: Ensure it uses relative path for Nginx
-                          <img src={`/uploads/${profile.profileImages[0]}`} className="w-full h-full object-cover" alt="Profile" />
+                          // ✅ 2. FIX: USE HELPER FUNCTION FOR PENDING IMAGES
+                          <img 
+                            src={getFullImageUrl(profile.profileImages[0])} 
+                            className="w-full h-full object-cover" 
+                            alt="Profile" 
+                          />
                         ) : (
                           <div className="bg-gray-200 text-gray-400 flex items-center justify-center h-full text-xs">No Image</div>
                         )}
@@ -329,8 +347,7 @@ export default function AdminDashboard() {
   );
 }
 
-// ... (Your Components like SidebarItem, StatCard, StatusBadge, InterestModal remain the same)
-// Just ensure InterestModal also uses src={`/uploads/${p.profileImages?.[0]}`}
+// ... SidebarItem, StatCard, StatusBadge ...
 function SidebarItem({ icon, label, active, onClick, badge }) {
   return (
     <button
@@ -365,6 +382,7 @@ function StatusBadge({ status }) {
   return <span className={`px-2 py-1 rounded-full text-xs uppercase font-semibold ${style[status]}`}>{status}</span>;
 }
 
+// ✅ 3. FIX: USE HELPER FUNCTION IN INTEREST MODAL
 function InterestModal({ loading, list, name, clientId, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -390,8 +408,9 @@ function InterestModal({ loading, list, name, clientId, onClose }) {
             <ul className="divide-y">
               {list.map((p) => (
                 <li key={p._id} className="p-4 flex items-center gap-4">
+                  {/* FIX HERE AS WELL */}
                   <img
-                    src={`/uploads/${p.profileImages?.[0]}`}
+                    src={getFullImageUrl(p.profileImages?.[0])}
                     className="w-14 h-14 rounded-full object-cover bg-gray-200"
                     alt="Profile"
                   />
