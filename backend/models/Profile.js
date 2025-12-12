@@ -374,6 +374,7 @@ const profileSchema = new mongoose.Schema(
         "Specialist",
         "Student",
         "Workman",
+        ""
       ],
     },
 
