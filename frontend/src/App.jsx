@@ -12,10 +12,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* PUBLIC ROUTES */}
         <Route path="/" element={<Login_Signup />} />
+
+        {/* Profile form must be accessible even if user not approved */}
         <Route path="/profile" element={<Form />} />
 
-        {/* 🔐 Protected Routes */}
+        {/* PROTECTED ROUTES (Only logged-in + approved users) */}
         <Route
           path="/gallery"
           element={
@@ -24,6 +28,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user-profile"
           element={
@@ -32,6 +37,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/matches"
           element={
@@ -41,9 +47,10 @@ export default function App() {
           }
         />
 
-        {/* 🚨 Admin routes (optional to protect later) */}
+        {/* ADMIN ROUTES */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/user/:clientId" element={<AdminViewClient />} />
+
       </Routes>
     </BrowserRouter>
   );

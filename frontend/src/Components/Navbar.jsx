@@ -20,7 +20,7 @@ function Navbar() {
       <div className="md:hidden bg-white shadow-2xl sticky top-0 z-50">
         <div className="px-4 h-16 flex items-center justify-center">
           <Link to="/" className="flex items-center justify-center">
-            <img src={assets.logo} alt="ANA Logo" className="h-12 object-contain" />
+            <img src={assets.logo1} alt="ANA Logo" className="h-12 object-contain" />
           </Link>
         </div>
       </div>

@@ -1,33 +1,51 @@
 import { Navigate } from "react-router-dom";
-// ✅ 1. Use the central API instance (auto-handles token & domain)
-import API from "../api/axios"; 
+import API from "../api/axios";
 import { useEffect, useState } from "react";
 
 export default function ProtectedRoute({ children }) {
   const [allowed, setAllowed] = useState(null);
+  const token = localStorage.getItem("token");
+
+  // 1️⃣ If NO TOKEN → redirect to LOGIN
+  if (!token) return <Navigate to="/" replace />;
 
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        // ✅ 2. Use relative path (API.baseURL handles the domain)
         const res = await API.get("/profile/me");
-        
-        // Only allow access if explicitly approved
-        if (res.data?.approvalStatus === "approved") {
-          setAllowed(true);
-        } else {
+        const profile = res.data;
+
+        // 2️⃣ Check if profile exists
+        if (!profile) {
           setAllowed(false);
+          return;
         }
+
+        // 3️⃣ If form not completed → redirect to profile form
+        if (!profile.isCompleted) {
+          setAllowed(false);
+          return;
+        }
+
+        // 4️⃣ If admin has not approved → redirect to profile page
+        if (profile.approvalStatus !== "approved") {
+          setAllowed(false);
+          return;
+        }
+
+        // 5️⃣ All checks passed → allow access
+        setAllowed(true);
+
       } catch (error) {
-        console.error("Protected Route Error:", error);
+        console.log("Protected Route Error:", error);
         setAllowed(false);
       }
     };
-    
+
     checkAccess();
   }, []);
 
-  // Show small loader while checking status
+  // Small loading indicator
   if (allowed === null)
     return (
       <div className="min-h-screen flex justify-center items-center text-gray-500">
@@ -35,6 +53,6 @@ export default function ProtectedRoute({ children }) {
       </div>
     );
 
-  // ❌ Not approved → redirect to profile page (where they see "Pending" screen)
+  // ❌ Not allowed → send to profile page to view pending status
   return allowed ? children : <Navigate to="/profile" replace />;
 }
