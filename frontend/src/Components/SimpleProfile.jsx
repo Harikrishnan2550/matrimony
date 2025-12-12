@@ -547,7 +547,6 @@ const getProfileImage = () => {
                       </span>
                     </div>
                   )}
-                
                  
 
                   {/* Family Details (Original) */}
@@ -657,7 +656,7 @@ const getProfileImage = () => {
 
               {/* Bio Section */}
               {profile.bio && (
-                <div className="md:col-span-2 bg-white rounded-2xl sm:rounded-3xl shadow-lg sm:shadow-2xl shadow-blue-500/10 border border-gray-100 p-4 sm:p-6 lg:p-8">
+                <div className="md:col-span-2 bg-white rounded-2xl sm:rounded-3xl shadow-lg sm:shadow-2xl shadow-blue-500/10 border border-gray-100 p-4 sm:p-6 lg:p-8 mb-24 sm:mb-8">
                   <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
                     <div className="bg-indigo-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
                       <Globe
