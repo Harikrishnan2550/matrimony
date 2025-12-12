@@ -6,22 +6,8 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axios"; 
+import getImageUrl from "../utils/getImageUrl";
 
-// ✅ 1. HELPER FUNCTION TO FIX IMAGE PATHS (Defined outside component to be accessible everywhere)
-const getFullImageUrl = (imagePath) => {
-  if (!imagePath) return "https://via.placeholder.com/150?text=No+Image"; // Fallback
-  if (imagePath.startsWith("http")) return imagePath;
-
-  // Fix backslashes and remove extra 'uploads/' prefix
-  let cleanPath = imagePath.replace(/\\/g, "/");
-  if (cleanPath.startsWith("uploads/")) {
-    cleanPath = cleanPath.replace("uploads/", "");
-  } else if (cleanPath.startsWith("/")) {
-    cleanPath = cleanPath.substring(1);
-  }
-
-  return `/uploads/${cleanPath}`;
-};
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview"); 
@@ -236,7 +222,7 @@ export default function AdminDashboard() {
                         {profile.profileImages?.[0] ? (
                           // ✅ 2. FIX: USE HELPER FUNCTION FOR PENDING IMAGES
                           <img 
-                            src={getFullImageUrl(profile.profileImages[0])} 
+                            src={getImageUrl(profile.profileImages[0])} 
                             className="w-full h-full object-cover" 
                             alt="Profile" 
                           />
@@ -410,7 +396,7 @@ function InterestModal({ loading, list, name, clientId, onClose }) {
                 <li key={p._id} className="p-4 flex items-center gap-4">
                   {/* FIX HERE AS WELL */}
                   <img
-                    src={getFullImageUrl(p.profileImages?.[0])}
+                    src={getImageUrl(p.profileImages?.[0])}
                     className="w-14 h-14 rounded-full object-cover bg-gray-200"
                     alt="Profile"
                   />

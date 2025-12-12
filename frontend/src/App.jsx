@@ -5,7 +5,7 @@ import GalleryPage from "./Components/GalleryPage";
 import Matches from "./Components/Matches";
 import AdminDashboard from "./Components/AdminDashboard";
 import AdminViewClient from "./Components/AdminViewClient";
-import UserProfile from "./Components/UserProfile";
+import SimpleProfile from "./Components/SimpleProfile";
 import ProtectedRoute from "./Components/ProtectedRoute";
 
 export default function App() {
@@ -28,7 +28,7 @@ export default function App() {
           path="/user-profile"
           element={
             <ProtectedRoute>
-              <UserProfile />
+              <SimpleProfile />
             </ProtectedRoute>
           }
         />

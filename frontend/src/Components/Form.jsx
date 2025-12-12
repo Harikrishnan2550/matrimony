@@ -42,6 +42,9 @@ export default function Form() {
     name: "",
     father: "",
     mother: "",
+    fatherOccupation: "", // NEW
+    motherOccupation: "", // NEW
+    siblings: "",
     mobile: "",
     address: "",
     gender: "",
@@ -142,6 +145,9 @@ export default function Form() {
       name: profile.name || "",
       father: profile.father || "",
       mother: profile.mother || "",
+      fatherOccupation: profile.fatherOccupation || "",  // NEW
+        motherOccupation: profile.motherOccupation || "",  // NEW
+        siblings: profile.siblings || "",
       mobile: profile.phone || "",
       address: profile.address || "",
       gender: mapGenderToLabel(profile.gender) || "",
@@ -226,22 +232,24 @@ export default function Form() {
     }
   };
 
-  const getFullImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith("http")) return imagePath;
+const getFullImageUrl = (imagePath) => {
+  if (!imagePath) return "/no-profile.png";
 
-    // Fix: Remove 'uploads/' or backslashes if they are already in the DB path
-    // so we don't get /uploads/uploads/image.jpg
-    let cleanPath = imagePath.replace(/\\/g, "/"); // Fix Windows paths
-    if (cleanPath.startsWith("uploads/")) {
-      cleanPath = cleanPath.replace("uploads/", "");
-    } else if (cleanPath.startsWith("/")) {
-      cleanPath = cleanPath.substring(1);
-    }
+  imagePath = imagePath.replace(/\\/g, "/");
 
-    // Nginx is configured to serve files at /uploads/filename.jpg
-    return `/uploads/${cleanPath}`;
-  };
+  // Fix double uploads
+  imagePath = imagePath.replace("uploads/uploads", "uploads");
+
+  // If already a full URL, return as is
+  if (imagePath.startsWith("http")) {
+    return imagePath;
+  }
+
+  // Return full live domain path
+  return `https://login.akhilendianadar.in/${imagePath}`;
+};
+
+
 
   // Mapping functions for form labels
   const mapGenderToLabel = (gender) => {
@@ -632,6 +640,9 @@ const handleSubmit = async () => {
           name: formData.name,
           father: formData.father,
           mother: formData.mother,
+          fatherOccupation: formData.fatherOccupation || "",  // NEW
+          motherOccupation: formData.motherOccupation || "",  // NEW
+          siblings: formData.siblings ? Number(formData.siblings) : undefined,
           phone: formData.mobile,
           address: formData.address,
           gender: mapGender(formData.gender),
@@ -741,6 +752,9 @@ const handleSubmit = async () => {
         name: formData.name,
         father: formData.father,
         mother: formData.mother,
+        fatherOccupation: formData.fatherOccupation || "",  // NEW
+        motherOccupation: formData.motherOccupation || "",  // NEW
+        siblings: formData.siblings ? Number(formData.siblings) : undefined,
         phone: formData.mobile,
         address: formData.address,
         gender: mapGender(formData.gender),
@@ -1295,6 +1309,34 @@ const handleSubmit = async () => {
                     value={formData.mother}
                     onChange={(e) => updateField("mother", e.target.value)}
                   />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 stagger-3">
+                    <InputField
+                        icon={<Briefcase size={20} />}
+                        label="Father's Occupation"
+                        placeholder="e.g., Engineer, Business"
+                        value={formData.fatherOccupation}
+                        onChange={(e) => updateField("fatherOccupation", e.target.value)}
+                    />
+                    <InputField
+                        icon={<Briefcase size={20} />}
+                        label="Mother's Occupation"
+                        placeholder="e.g., Homemaker, Teacher"
+                        value={formData.motherOccupation}
+                        onChange={(e) => updateField("motherOccupation", e.target.value)}
+                    />
+                </div>
+                
+                <div className="stagger-4">
+                    <InputField
+                        icon={<Users size={20} />}
+                        label="Number of Siblings"
+                        type="number"
+                        placeholder="Enter 0, 1, 2, etc."
+                        value={formData.siblings}
+                        onChange={(e) => updateField("siblings", e.target.value)}
+                    />
                 </div>
 
                 <div className="stagger-3">

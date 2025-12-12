@@ -18,10 +18,12 @@ import axios from "axios";
 
 // Create a single axios instance
 const API = axios.create({
-  // "baseURL: '/api'" tells the browser to use the current domain + /api
-  // This is PERFECT for Nginx hosting.
-  baseURL: "/api", 
+  baseURL:
+    window.location.hostname === "localhost"
+      ? "http://localhost:4000/api"
+      : "https://login.akhilendianadar.in/api",
 });
+
 
 // Automatically add the Token to every request
 API.interceptors.request.use((config) => {
