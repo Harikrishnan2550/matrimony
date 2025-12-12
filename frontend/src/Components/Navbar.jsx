@@ -32,7 +32,7 @@ function Navbar() {
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3 group">
               <img
-                src={assets.logo}
+                src={assets.logo1}
                 alt="ANA Logo"
                 className="h-16 object-contain transition-all duration-300 group-hover:scale-105"
               />
