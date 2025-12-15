@@ -15,7 +15,9 @@ export const signup = async (req, res) => {
 
     // Check existing email
     const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: "Email already exists" });
+    if (exists) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
 
     // Auto-generate client ID
     const lastUser = await User.findOne().sort({ createdAt: -1 });
@@ -31,13 +33,19 @@ export const signup = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ✅ ADMIN CHECK (EMAIL ONLY)
+    const role =
+      email === process.env.ADMIN_EMAIL ? "admin" : "user";
+
     // Save user
     const user = await User.create({
       clientId: newClientId,
       name,
       email,
       phone,
-      password: hashedPassword
+      password: hashedPassword,
+      role,
+      approved: role === "admin" ? true : false // optional
     });
 
     const token = generateToken(user._id);
@@ -49,14 +57,17 @@ export const signup = async (req, res) => {
         id: user._id,
         clientId: user.clientId,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Signup failed" });
   }
 };
+
 
 // ---------------- LOGIN ---------------- //
 
@@ -64,35 +75,16 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 🔹 1) ADMIN LOGIN CHECK
-    if (
-      email === process.env.ADMIN_EMAIL &&
-      password === process.env.ADMIN_PASSWORD
-    ) {
-      const token = jwt.sign(
-        { role: "admin" },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-
-      return res.json({
-        message: "Admin login successful",
-        token,
-        user: {
-          name: "Admin",
-          email: email,
-          role: "admin",
-        }
-      });
+    // Find user (admin or normal)
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // 🔹 2) NORMAL USER LOGIN (database)
-    const user = await User.findOne({ email });
-
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
-
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ message: "Invalid credentials" });
+    if (!match) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -108,7 +100,7 @@ export const login = async (req, res) => {
         clientId: user.clientId,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role
       }
     });
 
