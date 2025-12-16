@@ -334,35 +334,42 @@ export const checkAdminSetup = async (req, res) => {
 
 
 export const adminSignup = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const existingAdmin = await User.findOne({ role: "admin" });
-  if (existingAdmin) {
-    return res.status(403).json({ message: "Admin already exists" });
-  }
+    // 🔒 Allow only ONE admin
+    const existingAdmin = await User.findOne({ role: "admin" });
+    if (existingAdmin) {
+      return res.status(403).json({ message: "Admin already exists" });
+    }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const admin = await User.create({
-    email,
-    password: hashedPassword,
-    role: "admin",
-    approved: true,
-  });
-
-  const token = jwt.sign(
-    { id: admin._id, role: "admin" },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  res.status(201).json({
-    message: "Admin setup completed",
-    token,
-    user: {
-      id: admin._id,
-      email: admin.email,
+    const admin = await User.create({
+      name: "Administrator", // ✅ REQUIRED FIELD FIX
+      email,
+      password: hashedPassword,
       role: "admin",
-    },
-  });
+      approved: true,
+    });
+
+    const token = jwt.sign(
+      { id: admin._id, role: "admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      message: "Admin setup completed",
+      token,
+      user: {
+        id: admin._id,
+        email: admin.email,
+        role: "admin",
+      },
+    });
+  } catch (err) {
+    console.error("ADMIN SIGNUP ERROR:", err);
+    res.status(500).json({ message: "Admin setup failed" });
+  }
 };
