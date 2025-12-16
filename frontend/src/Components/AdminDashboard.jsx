@@ -5,12 +5,11 @@
 // } from "lucide-react";
 // import { toast } from "sonner";
 // import { useNavigate } from "react-router-dom";
-// import API from "../api/axios"; 
+// import API from "../api/axios";
 // import getImageUrl from "../utils/getImageUrl";
 
-
 // export default function AdminDashboard() {
-//   const [activeTab, setActiveTab] = useState("overview"); 
+//   const [activeTab, setActiveTab] = useState("overview");
 //   const [pendingProfiles, setPendingProfiles] = useState([]);
 //   const [allProfiles, setAllProfiles] = useState([]);
 //   const [loading, setLoading] = useState(true);
@@ -73,9 +72,9 @@
 //       if (!id) return toast.error("Invalid profile ID");
 
 //       await API.patch(`/profile/approve/${id}`);
-      
+
 //       toast.success("User approved successfully");
-//       fetchDashboardData(); 
+//       fetchDashboardData();
 //     } catch (error) {
 //       console.error("Approval failed:", error);
 //       toast.error(error.response?.data?.message || "Approval failed");
@@ -221,10 +220,10 @@
 //                       <div className="w-32 h-32 bg-gray-100 rounded overflow-hidden">
 //                         {profile.profileImages?.[0] ? (
 //                           // ✅ 2. FIX: USE HELPER FUNCTION FOR PENDING IMAGES
-//                           <img 
-//                             src={getImageUrl(profile.profileImages[0])} 
-//                             className="w-full h-full object-cover" 
-//                             alt="Profile" 
+//                           <img
+//                             src={getImageUrl(profile.profileImages[0])}
+//                             className="w-full h-full object-cover"
+//                             alt="Profile"
 //                           />
 //                         ) : (
 //                           <div className="bg-gray-200 text-gray-400 flex items-center justify-center h-full text-xs">No Image</div>
@@ -420,10 +419,6 @@
 //   );
 // }
 
-
-
-
-
 import React, { useState, useEffect } from "react";
 import {
   Users,
@@ -493,9 +488,8 @@ export default function AdminDashboard() {
       setStats({
         total: allRes.data.length,
         pending: pendingRes.data.length,
-        approved: allRes.data.filter(
-          (p) => p.approvalStatus === "approved"
-        ).length,
+        approved: allRes.data.filter((p) => p.approvalStatus === "approved")
+          .length,
       });
     } catch {
       toast.error("Failed to load dashboard data");
@@ -671,18 +665,29 @@ export default function AdminDashboard() {
                   <tr key={p._id} className="border-b">
                     <td className="p-4">{p.user?.clientId}</td>
                     <td className="p-4">{p.name}</td>
-                    <td className="p-4">
+                    <td className="p-4 flex gap-4 items-center">
+                      {/* 👁 View Client */}
+                      <button
+                        onClick={() =>
+                          navigate(`/admin/user/${p.user?.clientId}`)
+                        }
+                        className="text-indigo-600 hover:underline flex items-center gap-1"
+                      >
+                        <Eye size={16} /> View
+                      </button>
+
+                      {/* 💙 View Interests */}
                       <button
                         onClick={() => handleViewInterests(p)}
-                        className="text-blue-600"
+                        className="text-blue-600 hover:underline"
                       >
                         View Interests
                       </button>
-                    </td>
-                    <td className="p-4">
+
+                      {/* 🗑 Delete */}
                       <button
                         onClick={() => handleDelete(p._id)}
-                        className="text-red-600"
+                        className="text-red-600 hover:underline"
                       >
                         Delete
                       </button>
@@ -851,18 +856,13 @@ function InterestModal({ loading, list, name, clientId, onClose }) {
               />
               <div>
                 <p className="font-semibold">{p.name}</p>
-                <p className="text-xs text-gray-500">
-                  {p.user?.clientId}
-                </p>
+                <p className="text-xs text-gray-500">{p.user?.clientId}</p>
               </div>
             </div>
           ))
         )}
 
-        <button
-          onClick={onClose}
-          className="mt-4 px-4 py-2 border rounded"
-        >
+        <button onClick={onClose} className="mt-4 px-4 py-2 border rounded">
           Close
         </button>
       </div>
