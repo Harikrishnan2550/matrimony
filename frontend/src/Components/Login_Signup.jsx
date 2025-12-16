@@ -1,14 +1,24 @@
 import React, { useState } from "react";
 import {
-  Shield, Users, Award, Lock, Mail, Phone, User,
-  Eye, EyeOff, Menu, X, Loader2
+  Shield,
+  Users,
+  Award,
+  Lock,
+  Mail,
+  Phone,
+  User,
+  Eye,
+  EyeOff,
+  Menu,
+  X,
+  Loader2,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { useNavigate } from "react-router-dom";
 import assets from "../assets/assets";
 
 // ✅ IMPORT THE CENTRAL API INSTANCE
-import API from "../api/axios"; 
+import API from "../api/axios";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -57,19 +67,19 @@ export default function AuthPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userInfo", JSON.stringify(data.user));
 
-      toast.success(data.message || (isLogin ? "Login successful!" : "Account created successfully!"));
+      toast.success(
+        data.message ||
+          (isLogin ? "Login successful!" : "Account created successfully!")
+      );
 
       // 4. Redirect Logic
       setTimeout(() => {
-        if (data.user.role === "admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/profile");
-        }
+        navigate("/profile");
       }, 500);
-
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Something went wrong. Please try again.";
+      const errorMsg =
+        error.response?.data?.message ||
+        "Something went wrong. Please try again.";
       toast.error(errorMsg);
       console.error("Auth Error:", error);
     } finally {
@@ -79,15 +89,19 @@ export default function AuthPage() {
 
   // ... (The rest of your JSX/UI code remains exactly the same)
   // Just make sure the JSX below is unchanged from your original file.
-  
+
   return (
     <div className="min-h-screen bg-white flex flex-col lg:flex-row">
       <Toaster position="top-center" richColors />
       {/* ... paste your original JSX here ... */}
-       {/* Mobile Header with Menu Toggle */}
+      {/* Mobile Header with Menu Toggle */}
       <div className="lg:hidden bg-[#2D3E9F] p-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center">
-          <img src={assets.logo} alt="ANA Logo" className="h-10 object-contain" />
+          <img
+            src={assets.logo}
+            alt="ANA Logo"
+            className="h-10 object-contain"
+          />
         </div>
 
         <button
@@ -197,7 +211,11 @@ export default function AuthPage() {
           {/* Logo */}
           <div className="mb-20">
             <div className="flex items-center mb-20">
-              <img src={assets.logo} alt="ANA Logo" className="h-16 object-contain" />
+              <img
+                src={assets.logo}
+                alt="ANA Logo"
+                className="h-16 object-contain"
+              />
             </div>
           </div>
 
@@ -282,6 +300,15 @@ export default function AuthPage() {
       {/* Right Panel - Auth Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-16 bg-white">
         <div className="w-full max-w-lg">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => navigate("/admin/login")}
+              className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition"
+            >
+              Admin
+            </button>
+          </div>
+
           {/* Header */}
           <div className="mb-8 sm:mb-10">
             <div className="inline-flex items-center space-x-2 bg-blue-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-4 sm:mb-6">
