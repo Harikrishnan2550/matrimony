@@ -1159,3 +1159,21 @@ export const getInterestsByUser = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+
+export const getPublicProfilesSafe = async (req, res) => {
+  try {
+    const profiles = await Profile.find({
+      approvalStatus: "approved",
+      isCompleted: true,
+    })
+      .populate("user", "_id") // keep user reference only
+      .select("-phone -address") // ✅ ONLY REMOVE THESE TWO
+      .sort({ createdAt: -1 });
+
+    res.json(profiles);
+  } catch (error) {
+    console.error("Error fetching public profiles:", error);
+    res.status(500).json({ message: "Failed to fetch profiles" });
+  }
+};

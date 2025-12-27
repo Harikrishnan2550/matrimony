@@ -70,6 +70,7 @@ import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminLogin from "./Components/AdminLogin";
 import AdminForgotPassword from "./Components/AdminForgotPassword";
 import AdminSetup from "./Components/AdminSetup";
+import ProfileView from "./Components/ProfileView";
 
 
 export default function App() {
@@ -110,6 +111,16 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/profile/:profileId"
+  element={
+    <ProtectedRoute>
+      <ProfileView />
+    </ProtectedRoute>
+  }
+/>
+
 
         {/* ADMIN ROUTES */}
         <Route path="/admin/login" element={<AdminLogin />} />   {/* ✅ ADD THIS */}

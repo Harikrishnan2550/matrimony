@@ -47,7 +47,7 @@ export default function Matches() {
 
   let profileImage = profile.profileImages?.length
     ? getImageUrl(profile.profileImages[0])
-    : getDefaultImage(profile.gender);
+    : "/icon.jpg";
 
   return {
     id: item._id || profile._id || `match-${index}`,
@@ -102,11 +102,6 @@ export default function Matches() {
     }
   };
 
-  const getDefaultImage = (gender) => {
-    return gender === "female"
-      ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop"
-      : "https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=1000&auto=format&fit=crop";
-  };
 
   const handleStartChat = (match) => {
     toast.info("Chat feature coming soon!", {

@@ -15,14 +15,18 @@ import API from "../api/axios";
 import { toast } from "sonner";
 import Navbar from "./Navbar";
 import getImageUrl from "../utils/getImageUrl";
+import { useNavigate } from "react-router-dom";
+
 
 export default function SimpleGallery() {
-  const [selectedProfile, setSelectedProfile] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sendingInterest, setSendingInterest] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [userInterests, setUserInterests] = useState(new Set());
+
+  const navigate = useNavigate();
+
 
   // Fetch current user info
   useEffect(() => {
@@ -97,100 +101,98 @@ export default function SimpleGallery() {
   };
 
   // Combined function to fetch profiles and interests
-  // Combined function to fetch profiles and interests
-// Combined function to fetch profiles and interests
-const fetchProfilesAndInterests = async () => {
-  setLoading(true);
+  const fetchProfilesAndInterests = async () => {
+    setLoading(true);
 
-  // 🔥 FIX: Reset interest flags so profiles are not hidden
-  setUserInterests(new Set());
+    // 🔥 FIX: Reset interest flags so profiles are not hidden
+    setUserInterests(new Set());
 
-  try {
-    const interests = await fetchUserInterests();
+    try {
+      const interests = await fetchUserInterests();
 
-    // Then fetch profiles
-    const response = await API.get("/profile/public");
-    console.log("Public profiles fetched:", response.data);
-    console.log(
-      "PROFILE IMAGES:",
-      response.data.map((p) => ({
-        id: p._id,
-        images: p.images || p.profileImages,
-      }))
-    );
-
-    // Transform backend data
-    let transformedProfiles = response.data.map((profile) => {
+      // Then fetch profiles
+      const response = await API.get("/profile/public");
+      console.log("Public profiles fetched:", response.data);
       console.log(
-        "RAW IMAGES FOR",
-        profile._id,
-        profile.images,
-        profile.profileImages
+        "PROFILE IMAGES:",
+        response.data.map((p) => ({
+          id: p._id,
+          images: p.images || p.profileImages,
+        }))
       );
 
-      // --- FIXED UNIVERSAL IMAGE EXTRACTOR ---
-      let images = [];
+      // Transform backend data
+      let transformedProfiles = response.data.map((profile) => {
+        console.log(
+          "RAW IMAGES FOR",
+          profile._id,
+          profile.images,
+          profile.profileImages
+        );
 
-      if (Array.isArray(profile.profileImages)) {
-        // Most cases — backend sends full URLs here
-        images = profile.profileImages;
-      } else if (Array.isArray(profile.images)) {
-        // Old field support
-        images = profile.images;
-      } else if (
-        profile.profileImages &&
-        Array.isArray(profile.profileImages.images)
-      ) {
-        // Nested case
-        images = profile.profileImages.images;
-      } else if (typeof profile.profileImages === "string") {
-        // Single string URL
-        images = [profile.profileImages];
+        // --- FIXED UNIVERSAL IMAGE EXTRACTOR ---
+        let images = [];
+
+        if (Array.isArray(profile.profileImages)) {
+          // Most cases — backend sends full URLs here
+          images = profile.profileImages;
+        } else if (Array.isArray(profile.images)) {
+          // Old field support
+          images = profile.images;
+        } else if (
+          profile.profileImages &&
+          Array.isArray(profile.profileImages.images)
+        ) {
+          // Nested case
+          images = profile.profileImages.images;
+        } else if (typeof profile.profileImages === "string") {
+          // Single string URL
+          images = [profile.profileImages];
+        }
+
+        // Now images[] is guaranteed clean
+
+        // 🚀 THE FIX: ALWAYS use getImageUrl() on the raw image path/URL
+        let imageUrl =
+          images.length > 0
+            ? getImageUrl(images[0]) // <<< USE THE HELPER FUNCTION
+            : "/icon.jpg";
+
+        return {
+          id: profile._id,
+          category: profile.gender === "female" ? "Brides" : "Grooms",
+          name: profile.name,
+          age: profile.age,
+          profession: profile.career || "Not specified",
+          location: profile.city || profile.country || "Location not specified",
+
+          profileImages: images, // Raw paths/URLs stored here
+
+          image: imageUrl, // The generated, consistent URL stored here
+
+          bio: profile.bio || "No bio available",
+          height: profile.height || "Not specified",
+          userId: profile.user?._id || null,
+          interestSent: profile.interestedUsers?.includes(currentUserId),
+        };
+      });
+
+      // Filter out current user's own profile
+      if (currentUserId) {
+        transformedProfiles = transformedProfiles.filter(
+          (p) => p.userId !== currentUserId
+        );
       }
 
-      // Now images[] is guaranteed clean
-
-      // 🚀 THE FIX: ALWAYS use getImageUrl() on the raw image path/URL
-      let imageUrl =
-        images.length > 0
-          ? getImageUrl(images[0]) // <<< USE THE HELPER FUNCTION
-          : getDefaultImage(profile.gender);
-
-      return {
-        id: profile._id,
-        category: profile.gender === "female" ? "Brides" : "Grooms",
-        name: profile.name,
-        age: profile.age,
-        profession: profile.career || "Not specified",
-        location: profile.city || profile.country || "Location not specified",
-
-        profileImages: images, // Raw paths/URLs stored here
-
-        image: imageUrl, // The generated, consistent URL stored here
-
-        bio: profile.bio || "No bio available",
-        height: profile.height || "Not specified",
-        userId: profile.user?._id || null,
-        interestSent: profile.interestedUsers?.includes(currentUserId),
-      };
-    });
-
-    // Filter out current user's own profile
-    if (currentUserId) {
-      transformedProfiles = transformedProfiles.filter(
-        (p) => p.userId !== currentUserId
-      );
+      setProfiles(transformedProfiles);
+    } catch (error) {
+      console.error("Error fetching profiles:", error);
+      toast.error("Failed to load profiles. Please try again later.");
+      setProfiles([]);
+    } finally {
+      setLoading(false);
     }
-
-    setProfiles(transformedProfiles);
-  } catch (error) {
-    console.error("Error fetching profiles:", error);
-    toast.error("Failed to load profiles. Please try again later.");
-    setProfiles([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // Clear stored interests (useful when user logs out/changes)
   const clearStoredInterests = () => {
@@ -201,15 +203,6 @@ const fetchProfilesAndInterests = async () => {
     } catch (error) {
       console.error("Error clearing stored interests:", error);
     }
-  };
-
-  // Get default image based on gender
-  const getDefaultImage = (gender) => {
-    const defaultMale =
-      "https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=1000&auto=format&fit=crop";
-    const defaultFemale =
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop";
-    return gender === "female" ? defaultFemale : defaultMale;
   };
 
   // LocalStorage utilities for interest persistence
@@ -371,20 +364,7 @@ const fetchProfilesAndInterests = async () => {
     return hasInterest;
   };
 
-  // Lightbox Navigation
-  const handleNext = (e) => {
-    e.stopPropagation();
-    const currentIndex = profiles.findIndex((p) => p.id === selectedProfile.id);
-    const nextIndex = (currentIndex + 1) % profiles.length;
-    setSelectedProfile(profiles[nextIndex]);
-  };
 
-  const handlePrev = (e) => {
-    e.stopPropagation();
-    const currentIndex = profiles.findIndex((p) => p.id === selectedProfile.id);
-    const prevIndex = (currentIndex - 1 + profiles.length) % profiles.length;
-    setSelectedProfile(profiles[prevIndex]);
-  };
 
   if (loading) {
     return (
@@ -488,7 +468,10 @@ const fetchProfilesAndInterests = async () => {
                   key={profile.id}
                   className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 cursor-pointer border border-gray-100 flex flex-col opacity-0 animate-fade-in-up"
                   style={{ animationDelay: `${index * 100}ms` }}
-                  onClick={() => setSelectedProfile(profile)}
+                  onClick={() => {
+  navigate(`/profile/${profile.id}`);
+}}
+
                 >
                   {/* Image Section */}
                   <div className="aspect-[3/4] overflow-hidden relative bg-gray-100">
@@ -582,141 +565,7 @@ const fetchProfilesAndInterests = async () => {
         )}
       </div>
 
-      {/* Profile Modal */}
-      {/* Profile Modal */}
-      {selectedProfile &&
-        (() => {
-          const isInterested = hasShownInterest(selectedProfile);
-
-          return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/95 backdrop-blur-sm p-4 animate-fade-in">
-              <button
-                onClick={() => setSelectedProfile(null)}
-                className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition z-50 transform hover:rotate-90 duration-300"
-              >
-                <X className="w-8 h-8" />
-              </button>
-
-              <div className="flex flex-col md:flex-row bg-white rounded-2xl overflow-hidden max-w-4xl w-full max-h-[90vh] shadow-2xl animate-scale-in">
-                {/* Modal Image */}
-                <div className="md:w-1/2 relative bg-gray-100 h-64 md:h-auto group">
-                  <img
-                    src={selectedProfile.image}
-                    alt={selectedProfile.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {profiles.length > 1 && (
-                    <div className="absolute bottom-4 left-4 right-4 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        onClick={handlePrev}
-                        className="p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm transition hover:scale-110"
-                      >
-                        <ChevronLeft className="w-6 h-6" />
-                      </button>
-                      <button
-                        onClick={handleNext}
-                        className="p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm transition hover:scale-110"
-                      >
-                        <ChevronRight className="w-6 h-6" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Modal Details */}
-                <div className="md:w-1/2 p-6 md:p-8 overflow-y-auto">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full mb-2 uppercase tracking-wide animate-pulse">
-                        {selectedProfile.category}
-                      </span>
-                      <h2 className="text-3xl font-bold text-gray-900">
-                        {selectedProfile.name}
-                      </h2>
-                      <p className="text-gray-500 mt-1 flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        <span>{selectedProfile.location}</span>
-                      </p>
-                    </div>
-
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-blue-600">
-                        {selectedProfile.age}
-                      </p>
-                      <p className="text-xs text-gray-400 uppercase font-semibold">
-                        Years Old
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors duration-300">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">
-                        Professional Info
-                      </h4>
-                      <div className="flex items-center gap-3 text-gray-700">
-                        <Briefcase className="w-5 h-5 text-blue-500" />
-                        <span className="font-medium">
-                          {selectedProfile.profession}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors duration-300">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">
-                        Physical Details
-                      </h4>
-                      <div className="flex items-center gap-3 text-gray-700">
-                        <User className="w-5 h-5 text-green-500" />
-                        <span className="font-medium">
-                          Height: {selectedProfile.height}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wider">
-                        About
-                      </h4>
-                      <p className="text-gray-600 leading-relaxed text-sm">
-                        {selectedProfile.bio}
-                      </p>
-                    </div>
-
-                    {/* INTEREST BUTTON FIXED WITH isInterested */}
-                    <div className="pt-6 border-t border-gray-100 flex gap-3">
-                      <button
-                        onClick={() => handleSendInterest(selectedProfile.id)}
-                        disabled={sendingInterest || isInterested}
-                        className={`flex-1 font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2
-                  ${
-                    isInterested
-                      ? "bg-green-600 text-white shadow-green-600/20 cursor-default"
-                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20 hover:shadow-blue-600/40"
-                  }`}
-                      >
-                        {sendingInterest ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />{" "}
-                            Sending...
-                          </>
-                        ) : isInterested ? (
-                          <>
-                            <CheckCircle className="w-4 h-4" /> Interest Sent
-                          </>
-                        ) : (
-                          <>
-                            <Heart className="w-4 h-4" /> Send Interest
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
+     
     </div>
   );
 }

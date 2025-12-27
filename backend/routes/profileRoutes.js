@@ -78,7 +78,8 @@ import {
   getPublicProfiles,
   getMyInterests,
   withdrawInterest,
-  editMyProfile
+  editMyProfile,
+  getPublicProfilesSafe
 } from "../controllers/profileController.js";
 
 import upload from "../middleware/uploadMiddleware.js";
@@ -136,5 +137,6 @@ router.post("/interest", protect, sendInterest);
 router.delete("/interest", protect, withdrawInterest);
 router.get("/interests/:userId", protect, admin, getInterestsByUser);
 router.get("/my-interests", protect, getMyInterests);
+router.get("/public", getPublicProfilesSafe);
 
 export default router;
