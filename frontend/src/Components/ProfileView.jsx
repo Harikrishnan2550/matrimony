@@ -23,7 +23,8 @@ import {
   Baby,
   GraduationCap,
   Ruler,
-  Weight as WeightIcon
+  Weight as WeightIcon,
+ IdCardLanyard 
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -268,6 +269,7 @@ export default function ProfileView() {
                 <InfoRow icon={<GraduationCap className="w-5 h-5 text-orange-500" />} label="Education" value={profile.education} />
                 <InfoRow icon={<Ruler className="w-5 h-5 text-pink-500" />} label="Height" value={profile.height} />
                 <InfoRow icon={<WeightIcon className="w-5 h-5 text-indigo-500" />} label="Weight" value={profile.weight} />
+                <InfoRow icon={<IdCardLanyard className="w-5 h-5 text-indigo-500" />} label="Profession" value={profile.otherProfession} />
               </div>
             </div>
 
@@ -335,14 +337,20 @@ export default function ProfileView() {
 
 // Info Row Component
 const InfoRow = ({ icon, label, value }) => (
-  <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group cursor-default">
-    <div className="flex items-center gap-3">
-      <div className="group-hover:scale-110 transition-transform">{icon}</div>
+  <div className="flex items-start justify-between gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-200">
+    <div className="flex items-center gap-3 min-w-[140px]">
+      <div className="shrink-0">{icon}</div>
       <span className="text-gray-600 font-medium">{label}</span>
     </div>
-    <span className="font-bold text-gray-900 capitalize">{value || "—"}</span>
+
+    <div className="max-w-[60%] text-right">
+      <p className="font-semibold text-gray-900 leading-relaxed break-words">
+        {value || "—"}
+      </p>
+    </div>
   </div>
 );
+
 
 // Family Card Component
 const FamilyCard = ({ role, name, occupation, gradient }) => (

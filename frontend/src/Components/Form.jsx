@@ -575,66 +575,178 @@ const getFullImageUrl = (imagePath) => {
     }
   };
 
-const handleSubmit = async () => {
-    try {
-      // ============================================================
-      // 1. STRICT VALIDATION FOR REQUIRED FIELDS
-      // ============================================================
-      // This list MUST match the fields marked with (*) in your form.
-      const strictChecks = [
-        { value: formData.name, label: "Full Name" },
-        { value: formData.mobile, label: "Mobile Number" },
-        { value: formData.father, label: "Father's Name" },
-        { value: formData.mother, label: "Mother's Name" },
-        { value: formData.address, label: "Address" },
-        { value: formData.gender, label: "Gender" },
-        { value: formData.birthday, label: "Birthday" },
-        { value: formData.height, label: "Height" },
-        { value: formData.languages, label: "Mother Tongue" },
-        { value: formData.career, label: "Career" },
-        { value: formData.relationshipStatus, label: "Relationship Status" },
-        { value: formData.country, label: "Country" },
-        { value: formData.education, label: "Education" },
-        // Partner Preferences
-        { value: formData.interestedIn, label: "Interested In (Partner)" },
-        { value: formData.preferredEducation, label: "Preferred Education (Partner)" },
-      ];
+  const handleSubmit = async () => {
+      try {
+        // ============================================================
+        // 1. STRICT VALIDATION FOR REQUIRED FIELDS
+        // ============================================================
+        // This list MUST match the fields marked with (*) in your form.
+        const strictChecks = [
+          { value: formData.name, label: "Full Name" },
+          { value: formData.mobile, label: "Mobile Number" },
+          { value: formData.father, label: "Father's Name" },
+          { value: formData.mother, label: "Mother's Name" },
+          { value: formData.address, label: "Address" },
+          { value: formData.gender, label: "Gender" },
+          { value: formData.birthday, label: "Birthday" },
+          { value: formData.height, label: "Height" },
+          { value: formData.languages, label: "Mother Tongue" },
+          { value: formData.career, label: "Career" },
+          { value: formData.relationshipStatus, label: "Relationship Status" },
+          { value: formData.country, label: "Country" },
+          { value: formData.education, label: "Education" },
+          // Partner Preferences
+          { value: formData.interestedIn, label: "Interested In (Partner)" },
+          { value: formData.preferredEducation, label: "Preferred Education (Partner)" },
+        ];
 
-      // Find the first missing field
-      const missingField = strictChecks.find(
-        (item) => !item.value || item.value.toString().trim() === ""
-      );
+        // Find the first missing field
+        const missingField = strictChecks.find(
+          (item) => !item.value || item.value.toString().trim() === ""
+        );
 
-      // If a required field is missing, STOP and show specific error
-      if (missingField) {
-        toast.error(`Please fill the required field: ${missingField.label}`);
-        return; 
-      }
+        // If a required field is missing, STOP and show specific error
+        if (missingField) {
+          toast.error(`Please fill the required field: ${missingField.label}`);
+          return; 
+        }
 
-      // ============================================================
-      // 2. IMAGE VALIDATION
-      // ============================================================
-      if (!images.profile) {
-        toast.error("Please upload a profile picture.");
-        return;
-      }
+        // ============================================================
+        // 2. IMAGE VALIDATION
+        // ============================================================
+        if (!images.profile) {
+          toast.error("Please upload a profile picture.");
+          return;
+        }
 
-      // ============================================================
-      // 3. AGE VALIDATION
-      // ============================================================
-      const age = calculateAge(formData.birthday);
-      if (!age) {
-        toast.error("Invalid birthday. Please select a valid date.");
-        return;
-      }
+        // ============================================================
+        // 3. AGE VALIDATION
+        // ============================================================
+        const age = calculateAge(formData.birthday);
+        if (!age) {
+          toast.error("Invalid birthday. Please select a valid date.");
+          return;
+        }
 
-      setIsSubmitting(true);
+        setIsSubmitting(true);
 
-      // ============================================================
-      // 4. CREATE PROFILE LOGIC (First Time)
-      // ============================================================
-      if (!isEditMode) {
-        const loadingToast = toast.loading("Submitting your profile...");
+        // ============================================================
+        // 4. CREATE PROFILE LOGIC (First Time)
+        // ============================================================
+        if (!isEditMode) {
+          const loadingToast = toast.loading("Submitting your profile...");
+
+          const payload = {
+            name: formData.name,
+            father: formData.father,
+            mother: formData.mother,
+            fatherOccupation: formData.fatherOccupation || "",  // NEW
+            motherOccupation: formData.motherOccupation || "",  // NEW
+            siblings: formData.siblings ? Number(formData.siblings) : undefined,
+            phone: formData.mobile,
+            address: formData.address,
+            gender: mapGender(formData.gender),
+            birthday: formData.birthday,
+            age: age,
+            height: formData.height,
+            weight: formData.weight || "", // Optional
+            motherTongue: formData.languages || "",
+            career: formData.career || "",
+            bio: formData.bio || "", // Optional
+            relationshipStatus: mapRelationshipStatus(
+              formData.relationshipStatus
+            ),
+            country: formData.country || "",
+            city: formData.city || "",
+            education: mapEducation(formData.education) || "",
+            professionalStatus: formData.professionalStatus || "",
+            otherProfession: formData.otherProfession || "",
+            children: mapChildren(formData.children),
+            smoking: mapSmoking(formData.smoking),
+            alcohol: mapAlcohol(formData.alcohol),
+            partnerPreferences: {
+              interestedIn: mapGender(formData.interestedIn),
+              heightRange:
+                formData.heightFrom && formData.heightTo
+                  ? `${formData.heightFrom} - ${formData.heightTo}`
+                  : "",
+              weightRange:
+                formData.weightFrom && formData.weightTo
+                  ? `${formData.weightFrom} - ${formData.weightTo}`
+                  : "",
+              relationshipStatus: mapRelationshipStatus(
+                formData.preferredRelationship
+              ),
+              alcohol: mapAlcohol(formData.preferredAlcohol),
+              smoking: mapSmoking(formData.preferredSmoking),
+              children: mapChildren(formData.preferredChildren),
+              country: formData.preferredCountry || "",
+              language: formData.preferredLanguages || "",
+              education: mapEducation(formData.preferredEducation) || "",
+              ageMin: formData.ageFrom ? Number(formData.ageFrom) : undefined,
+              ageMax: formData.ageTo ? Number(formData.ageTo) : undefined,
+              locationPreference: mapLocationPreference(formData.dateLocation),
+            },
+          };
+
+          const res = await API.post("/profile", payload);
+          console.log("Profile created:", res.data);
+
+          if (res.data.profile?._id) {
+            const imageFiles = [];
+
+            if (images.profile && images.profile.file) {
+              imageFiles.push(images.profile.file);
+            }
+
+            images.gallery.forEach((img) => {
+              if (img && img.file) imageFiles.push(img.file);
+            });
+
+            if (imageFiles.length > 0) {
+              toast.loading("Uploading images...", { id: loadingToast });
+
+              const uploadFormData = new FormData();
+              imageFiles.forEach((file, index) => {
+                const filename =
+                  index === 0 ? `profile.jpg` : `gallery-${index}.jpg`;
+                uploadFormData.append("images", file, filename);
+              });
+
+              try {
+                await API.post("/profile/upload-images", uploadFormData, {
+                  headers: { "Content-Type": "multipart/form-data" },
+                });
+                toast.success(
+                  "Profile submitted successfully! Awaiting admin approval.",
+                  { id: loadingToast }
+                );
+              } catch (uploadError) {
+                console.error("Image upload error:", uploadError);
+                toast.success(
+                  "Profile submitted! Some images failed to upload. Awaiting admin approval.",
+                  { id: loadingToast }
+                );
+              }
+            } else {
+              toast.success(
+                "Profile submitted successfully! Awaiting admin approval.",
+                { id: loadingToast }
+              );
+            }
+          }
+
+          setProfileId(res.data.profile?._id);
+          setApprovalStatus("pending");
+          setIsNewProfilePending(true);
+
+          return;
+        }
+
+        // ============================================================
+        // 5. EDIT PROFILE LOGIC (Updating)
+        // ============================================================
+        const formDataToSend = new FormData();
 
         const payload = {
           name: formData.name,
@@ -649,13 +761,11 @@ const handleSubmit = async () => {
           birthday: formData.birthday,
           age: age,
           height: formData.height,
-          weight: formData.weight || "", // Optional
+          weight: formData.weight || "",
           motherTongue: formData.languages || "",
           career: formData.career || "",
-          bio: formData.bio || "", // Optional
-          relationshipStatus: mapRelationshipStatus(
-            formData.relationshipStatus
-          ),
+          bio: formData.bio || "",
+          relationshipStatus: mapRelationshipStatus(formData.relationshipStatus),
           country: formData.country || "",
           city: formData.city || "",
           education: mapEducation(formData.education) || "",
@@ -681,7 +791,7 @@ const handleSubmit = async () => {
             smoking: mapSmoking(formData.preferredSmoking),
             children: mapChildren(formData.preferredChildren),
             country: formData.preferredCountry || "",
-            language: formData.preferredLanguages || "",
+            language: formData.preferredLanguages || undefined,
             education: mapEducation(formData.preferredEducation) || "",
             ageMin: formData.ageFrom ? Number(formData.ageFrom) : undefined,
             ageMax: formData.ageTo ? Number(formData.ageTo) : undefined,
@@ -689,205 +799,95 @@ const handleSubmit = async () => {
           },
         };
 
-        const res = await API.post("/profile", payload);
-        console.log("Profile created:", res.data);
+        console.log("Sending payload:", payload);
 
-        if (res.data.profile?._id) {
-          const imageFiles = [];
+        formDataToSend.append("data", JSON.stringify(payload));
 
-          if (images.profile && images.profile.file) {
-            imageFiles.push(images.profile.file);
-          }
+        const remainingExistingImages = existingImages.filter(
+          (img) => !imagesToRemove.includes(img)
+        ).length;
 
-          images.gallery.forEach((img) => {
-            if (img && img.file) imageFiles.push(img.file);
-          });
+        const availableSlots = 4 - remainingExistingImages;
 
-          if (imageFiles.length > 0) {
-            toast.loading("Uploading images...", { id: loadingToast });
+        const newFiles = [];
 
-            const uploadFormData = new FormData();
-            imageFiles.forEach((file, index) => {
-              const filename =
-                index === 0 ? `profile.jpg` : `gallery-${index}.jpg`;
-              uploadFormData.append("images", file, filename);
-            });
-
-            try {
-              await API.post("/profile/upload-images", uploadFormData, {
-                headers: { "Content-Type": "multipart/form-data" },
-              });
-              toast.success(
-                "Profile submitted successfully! Awaiting admin approval.",
-                { id: loadingToast }
-              );
-            } catch (uploadError) {
-              console.error("Image upload error:", uploadError);
-              toast.success(
-                "Profile submitted! Some images failed to upload. Awaiting admin approval.",
-                { id: loadingToast }
-              );
-            }
-          } else {
-            toast.success(
-              "Profile submitted successfully! Awaiting admin approval.",
-              { id: loadingToast }
-            );
-          }
+        if (images.profile && images.profile.file && !images.profile.isExisting) {
+          newFiles.push(images.profile.file);
         }
 
-        setProfileId(res.data.profile?._id);
-        setApprovalStatus("pending");
-        setIsNewProfilePending(true);
+        images.gallery.forEach((img) => {
+          if (img && img.file && !img.isExisting) {
+            newFiles.push(img.file);
+          }
+        });
 
-        return;
-      }
-
-      // ============================================================
-      // 5. EDIT PROFILE LOGIC (Updating)
-      // ============================================================
-      const formDataToSend = new FormData();
-
-      const payload = {
-        name: formData.name,
-        father: formData.father,
-        mother: formData.mother,
-        fatherOccupation: formData.fatherOccupation || "",  // NEW
-        motherOccupation: formData.motherOccupation || "",  // NEW
-        siblings: formData.siblings ? Number(formData.siblings) : undefined,
-        phone: formData.mobile,
-        address: formData.address,
-        gender: mapGender(formData.gender),
-        birthday: formData.birthday,
-        age: age,
-        height: formData.height,
-        weight: formData.weight || "",
-        motherTongue: formData.languages || "",
-        career: formData.career || "",
-        bio: formData.bio || "",
-        relationshipStatus: mapRelationshipStatus(formData.relationshipStatus),
-        country: formData.country || "",
-        city: formData.city || "",
-        education: mapEducation(formData.education) || "",
-        professionalStatus: formData.professionalStatus || "",
-        otherProfession: formData.otherProfession || "",
-        children: mapChildren(formData.children),
-        smoking: mapSmoking(formData.smoking),
-        alcohol: mapAlcohol(formData.alcohol),
-        partnerPreferences: {
-          interestedIn: mapGender(formData.interestedIn),
-          heightRange:
-            formData.heightFrom && formData.heightTo
-              ? `${formData.heightFrom} - ${formData.heightTo}`
-              : "",
-          weightRange:
-            formData.weightFrom && formData.weightTo
-              ? `${formData.weightFrom} - ${formData.weightTo}`
-              : "",
-          relationshipStatus: mapRelationshipStatus(
-            formData.preferredRelationship
-          ),
-          alcohol: mapAlcohol(formData.preferredAlcohol),
-          smoking: mapSmoking(formData.preferredSmoking),
-          children: mapChildren(formData.preferredChildren),
-          country: formData.preferredCountry || "",
-          language: formData.preferredLanguages || undefined,
-          education: mapEducation(formData.preferredEducation) || "",
-          ageMin: formData.ageFrom ? Number(formData.ageFrom) : undefined,
-          ageMax: formData.ageTo ? Number(formData.ageTo) : undefined,
-          locationPreference: mapLocationPreference(formData.dateLocation),
-        },
-      };
-
-      console.log("Sending payload:", payload);
-
-      formDataToSend.append("data", JSON.stringify(payload));
-
-      const remainingExistingImages = existingImages.filter(
-        (img) => !imagesToRemove.includes(img)
-      ).length;
-
-      const availableSlots = 4 - remainingExistingImages;
-
-      const newFiles = [];
-
-      if (images.profile && images.profile.file && !images.profile.isExisting) {
-        newFiles.push(images.profile.file);
-      }
-
-      images.gallery.forEach((img) => {
-        if (img && img.file && !img.isExisting) {
-          newFiles.push(img.file);
+        if (newFiles.length > availableSlots) {
+          toast.error(
+            `You can only upload ${availableSlots} new image(s). Please remove some existing images first.`
+          );
+          setIsSubmitting(false);
+          return;
         }
-      });
 
-      if (newFiles.length > availableSlots) {
-        toast.error(
-          `You can only upload ${availableSlots} new image(s). Please remove some existing images first.`
+        if (imagesToRemove.length > 0) {
+          formDataToSend.append("removeImages", JSON.stringify(imagesToRemove));
+        }
+
+        newFiles.forEach((file, index) => {
+          const filename =
+            index === 0 && images.profile?.file
+              ? `profile-${Date.now()}.jpg`
+              : `gallery-${index}-${Date.now()}.jpg`;
+          formDataToSend.append("images", file, filename);
+        });
+
+        console.log(
+          `Image info - Existing: ${existingImages.length}, Removing: ${imagesToRemove.length}, Remaining: ${remainingExistingImages}, New: ${newFiles.length}, Available: ${availableSlots}`
         );
-        setIsSubmitting(false);
-        return;
-      }
 
-      if (imagesToRemove.length > 0) {
-        formDataToSend.append("removeImages", JSON.stringify(imagesToRemove));
-      }
+        const loadingToast = toast.loading("Updating profile...");
+        const response = await API.put("/profile/edit-profile", formDataToSend, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
-      newFiles.forEach((file, index) => {
-        const filename =
-          index === 0 && images.profile?.file
-            ? `profile-${Date.now()}.jpg`
-            : `gallery-${index}-${Date.now()}.jpg`;
-        formDataToSend.append("images", file, filename);
-      });
+        console.log("Profile updated:", response.data);
 
-      console.log(
-        `Image info - Existing: ${existingImages.length}, Removing: ${imagesToRemove.length}, Remaining: ${remainingExistingImages}, New: ${newFiles.length}, Available: ${availableSlots}`
-      );
+        if (response.data?.profile) {
+          setExistingProfile(response.data.profile);
+          setApprovalStatus(response.data.profile.approvalStatus || "approved");
 
-      const loadingToast = toast.loading("Updating profile...");
-      const response = await API.put("/profile/edit-profile", formDataToSend, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      console.log("Profile updated:", response.data);
-
-      if (response.data?.profile) {
-        setExistingProfile(response.data.profile);
-        setApprovalStatus(response.data.profile.approvalStatus || "approved");
-
-        if (response.data.profile.profileImages) {
-          loadExistingImages(response.data.profile.profileImages);
+          if (response.data.profile.profileImages) {
+            loadExistingImages(response.data.profile.profileImages);
+          }
         }
+
+        setImagesToRemove([]);
+
+        toast.success("Profile updated successfully! Redirecting to gallery...", {
+          id: loadingToast,
+        });
+        setTimeout(() => {
+          navigate("/gallery");
+        }, 1500);
+      } catch (err) {
+        console.error("Submit error:", err);
+        console.error("Error response:", err.response?.data);
+
+        let errorMessage = "Something went wrong while submitting your profile.";
+
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response?.status === 400) {
+          errorMessage = "Invalid data submitted. Please check your information.";
+        } else if (err.response?.status === 500) {
+          errorMessage = "Server error. Please try again later.";
+        }
+
+        toast.error(errorMessage);
+      } finally {
+        setIsSubmitting(false);
       }
-
-      setImagesToRemove([]);
-
-      toast.success("Profile updated successfully! Redirecting to gallery...", {
-        id: loadingToast,
-      });
-      setTimeout(() => {
-        navigate("/gallery");
-      }, 1500);
-    } catch (err) {
-      console.error("Submit error:", err);
-      console.error("Error response:", err.response?.data);
-
-      let errorMessage = "Something went wrong while submitting your profile.";
-
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.response?.status === 400) {
-        errorMessage = "Invalid data submitted. Please check your information.";
-      } else if (err.response?.status === 500) {
-        errorMessage = "Server error. Please try again later.";
-      }
-
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    };
 
   const handleEnterGallery = () => {
     navigate("/gallery");
